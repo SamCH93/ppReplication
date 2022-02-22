@@ -1,0 +1,1349 @@
+%% Template for a scientific paper by Samuel Pawel
+%% Last modification: 17. December 2020
+\documentclass[a4paper, 11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphics}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{amsmath, amssymb}
+\usepackage{doi} % automatic doi-links
+\usepackage[round]{natbib} % bibliography
+\usepackage{booktabs} % nicer tables
+\usepackage[title]{appendix} % better appendices
+\usepackage{nameref} % reference appendices with names
+\usepackage{todonotes}
+
+
+%% margins
+%% ----------------------------------------------------------------------------
+\usepackage{geometry}
+\geometry{
+  a4paper,
+  total={170mm,257mm},
+  left=25mm,
+  right=25mm,
+  top=20mm,
+  bottom=20mm,
+}
+
+%% title, authors, affiliations, mail
+%% ----------------------------------------------------------------------------
+\newcommand\longtitle{Power priors for design and analysis of replication studies }
+ \newcommand\shorttitle{\longtitle} % if longtitle too long, change here
+\newcommand\subtitle{}
+% \newcommand\longauthors{Samuel Pawel\textsuperscript{*} and Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
+% \newcommand\shortauthors{S. Pawel, E.-J. Wagenmakers} % if longauthors too long, change here
+% \newcommand\affiliation{
+%   * Department of Biostatistics, University of Zurich \\
+%   $\dagger$ Department of Psychological Methods, University of Amsterdam
+% }
+\newcommand\longauthors{Samuel Pawel}
+\newcommand\shortauthors{S. Pawel} % if longauthors too long, change here
+\newcommand\affiliation{
+  Department of Biostatistics, University of Zurich
+}
+\newcommand\mail{samuel.pawel@uzh.ch}
+\title{
+  \vspace{-2em}
+  \textbf{\longtitle} \\
+  \subtitle
+}
+\author{
+  \textbf{\longauthors} \\
+  \affiliation \\
+  E-mail: \href{mailto:\mail}{\mail}
+}
+\date{\today} % don't forget to hard-code date when submitting to arXiv!
+
+%% hyperref options
+%% ----------------------------------------------------------------------------
+\usepackage{hyperref}  
+\hypersetup{
+  bookmarksopen=true, 
+  breaklinks=true,
+  pdftitle={\shorttitle}, 
+  pdfauthor={\shortauthors},
+  pdfsubject={},
+  pdfkeywords={},
+  colorlinks=true,
+  linkcolor=RoyalPurple,
+  anchorcolor=black,
+  citecolor=MidnightBlue,
+  urlcolor=BrickRed,
+}
+
+%% Headers and footers
+%% ----------------------------------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{\shorttitle}
+\rhead{\shortauthors}
+
+%% custom commands
+%% ----------------------------------------------------------------------------
+\input{defs.tex}
+
+\begin{document}
+\maketitle
+
+% knitr options
+% -----------------------------------------------------------------------------
+<< "main-setup", include = FALSE >>=
+library(knitr)
+opts_chunk$set(fig.height = 4,
+               echo = FALSE,
+               warning = FALSE,
+               message = FALSE,
+               cache = FALSE,
+               eval = TRUE)
+@
+
+
+\section{Introduction}
+
+Power priors are a useful class of informative prior distributions that allow to
+incorporate historical data in Bayesian analyses \citep{Ibrahim2015}. The most
+basic version of the power prior is obtained by updating an initial prior with
+the likelihood of the historical data raised to the power of $\alpha$, where
+$\alpha$ is usually restricted to the range between zero and one. As such, the
+power parameter $\alpha$ specifies how much the historical data are discounted,
+and thus provides a quantitative and easy to interpret way of incorporating
+historical data.
+
+
+One domain where historical data are available is the analysis of replication
+studies. The question is typically to what extent the replication study
+replicated the result of an original study. Several methods have been proposed
+to answer this question \citep[among others]{Bayarri2002, Verhagen2014,
+  Johnson2016, Etz2016, vanAert2017, Ly2018, Hedges2019, Mathur2020, Held2020,
+  Pawel2020, Pawel2020b, Held2021}. Constructing a power prior from the original
+data and using it in the analysis of the replication study seems a natural thing
+to do. However, no one has yet investigated such an approach. In this paper we
+attempt to explore this and related ideas. In particular, we will \dots
+
+\section{The power prior based on an original study}
+Let $\theta$ denote an unknown effect size and $\that_{i}$ an estimate thereof
+obtained from study $i \in \{o, r\}$ where the subscript indicates ``original''
+or ``replication'', respectively. Assume that the likelihood of the effect
+estimates can be approximated by a normal distribution
+\begin{align*}
+  \that_{i} \given \theta \sim \Nor(\theta, \sigma^{2}_{i})
+\end{align*}
+with $\sigma_{i}$ the (assumed to be known) standard error of the effect
+estimate $\that_{i}$. This is the same framework as typically used in
+meta-analysis, and it is applicable to many types of data and effect sizes
+\citep[chapter 2.4]{Spiegelhalter2004}. There are, of course, situations where
+the approximation is inadequate and modified distributional assumptions are
+required (\eg for data from studies with small sample sizes and/or extreme
+effect sizes).
+
+The goal is now to construct a power prior for $\theta$ based on the data from
+the original study. % Assume an initial prior distribution for the effect size
+% \begin{align*}
+%   \theta \sim \Nor(m_{0}, v_{0}),
+    %   \end{align*}
+Under an (improper) flat initial prior $f(\theta) \propto 1$, normalization of
+the likelihood of the original data raised to a (fixed) power parameter $\alpha$
+leads to the power prior
+\begin{align}
+  \theta \given \that_{o}, \sigma_{o}, \alpha
+  \sim \Nor\left(\that_{o}, \frac{\sigma^{2}_{o}}{\alpha}\right).
+  \label{eq:pp}
+\end{align}
+There are different ways to specify $\alpha$. The simplest approach fixes
+$\alpha$ to an a priori reasonable value, possibly informed from external
+knowledge about the similarity of the two studies. Another option is to use the
+empirical Bayes estimate \citep{Gravestock2017}, \ie, the value of $\alpha$ that
+maximizes the likelihood of the replication data marginalized over the power
+prior
+\begin{align*}
+  \hat{\alpha}_{\text{EB}}
+  = \max\left[0, \min\left\{1, \frac{\sigma^{2}_{o}}{(\that_{o} - \that_{r})^{2}
+  - \sigma^{2}_{r}}\right\}\right].
+\end{align*}
+Finally, it is also possible to specify a prior distribution for $\alpha$, the
+most common choice being a marginal beta distribution
+\begin{align*}
+  \alpha \given x, y \sim \Be(x, y)
+\end{align*}
+for a power prior conditional on $\alpha$ as in~\eqref{eq:pp}. The uniform
+distribution ($x = 1$, $y = 1$) is often recommended as the default choice in
+the literature \citep{Ibrahim2015}. However, we note that if $\alpha$ is not
+restricted to the unit interval, another default choice could be a
+$f(\alpha) \propto \alpha^{-1}$ as this is the reference prior for a precision
+parameter in the normal model.
+% In order for the joint prior of $\alpha$ and $\theta$ to be a valid propability
+% distribution, their product must be appropriately normalized
+% \begin{align*}
+%   f(\theta, \alpha \given \that_{o}, \sigma_{o}, x, y)
+%   =
+% \end{align*}
+
+% The parameter $\alpha$ provides a link between the original and replication
+% study. So if the objective is to make inferences about the compatibility of the
+% study results, considering $\alpha$ as random seems the most useful choice. With
+% this approach one can then compute a posterior distribution of $\alpha$ based on
+% the data from both studies.
+
+\section{Parameter estimation}
+<< "posterior-distribution" >>=
+## check normalizing constant of the prior
+## alpha <- 0.6
+## to <- 2.1
+## so <- 0.8
+## integrate(f = function(t) dnorm(x = to, mean = t, sd = so)^alpha,
+##           lower = -Inf, upper = Inf)
+## sqrt(2*pi*so^2/alpha)/(2*pi*so^2)^(alpha/2)
+## (2*pi)^((1 - alpha)/2) * (so^2)^((1 - alpha)/2) / sqrt(alpha)
+
+## function to compute normalizing constant
+normConst <- function(tr, sr, to, so, x, y) {
+    intFun <- function(alpha) {
+        stats::dnorm(x = tr, mean = to, sd = sqrt(sr^2 + so^2/alpha)) *
+            stats::dbeta(x = alpha, shape1 = x, shape2 = y)
+    }
+    res <- try(stats::integrate(f = intFun, lower = 0, upper = 1)$value)
+    if (class(res) == "try-error") const <- NaN
+    else const <- res
+    return(res)
+}
+
+## function to compute posterior density
+posteriorDens <- function(theta, alpha, tr, sr, to, so, x, y, normConst = NULL) {
+    ## allow to give normalizing constant so that not recomputed
+    ## for for each parameter pair
+    if (is.null(normConst)) {
+        normConst <- normConst(tr = tr, sr = sr, to = to, so = so, x = x, y = y)
+    }
+
+    ## compute posterior density
+    dens <- stats::dnorm(x = tr, mean = theta, sd = sr) *
+        stats::dnorm(x = theta, mean = to, sd = so/sqrt(alpha)) *
+        stats::dbeta(x = alpha, shape1 = x, shape2 = y) /
+        normConst
+    return(dens)
+}
+
+## function to compute marginal posterior density of power parameter alpha
+posteriorDensAlpha <- function(alpha, tr, sr, to, so, x, y, normConst = NULL) {
+    ## allow to give normalizing constant so that not recomputed
+    ## for for each parameter pair
+    if (is.null(normConst)) {
+        normConst <- normConst(tr = tr, sr = sr, to = to, so = so, x = x, y = y)
+    }
+
+    ## compute marginal posterior density
+    dens <- stats::dnorm(x = tr, mean = to, sd = sqrt(sr^2 + so^2/alpha)) *
+        stats::dbeta(x = alpha, shape1 = x, shape2 = y) /
+        normConst
+    return(dens)
+}
+
+## function to compute marginal posterior density of effect size theta
+posteriorDensTheta <- function(theta, tr, sr, to, so, x, y, normConst = NULL) {
+    ## allow to give normalizing constant so that not recomputed
+    ## for for each parameter pair
+    if (is.null(normConst)) {
+        normConst <- normConst(tr = tr, sr = sr, to = to, so = so, x = x, y = y)
+    }
+
+    ## HACK vectorize function in theta
+    dens <- vapply(X = theta, FUN = function(thetai) {
+        ## compute marginal posterior density
+        intFun <- function(alpha) {
+            stats::dnorm(x = thetai, mean = to, sd = so/sqrt(alpha)) *
+                stats::dbeta(x = alpha, shape1 = x, shape2 = y)
+        }
+        res <- try(stats::integrate(f = intFun, lower = 0, upper = 1)$value)
+        if (class(res) == "try-error") int <- NaN
+        else int <- res
+        densi <- stats::dnorm(x = tr, mean = thetai, sd = sr) * int /
+            normConst
+        return(densi)
+    }, FUN.VALUE = 1)
+    return(dens)
+}
+
+## ## check that posterior integrates to one
+## .intFunAlpha <- function(alpha, tr, sr, to, so, x, y, normConst) {
+##     intFunTheta <- function(theta) {
+##         posteriorDens(theta, alpha, tr, sr, to, so, x, y, normConst)
+##     }
+##     integrate(f = intFunTheta, lower = -Inf, upper = Inf)$value
+## }
+## intFunAlpha <- Vectorize(FUN = .intFunAlpha)
+## tr <- 2.5
+## sr <- 0.8
+## to <- 1.9
+## so <- 1
+## x <- 1
+## y <- 1
+## nC <- normConst(tr = tr, sr = sr, to = to, so = so, x = x, y = y)
+## integrate(f = intFunAlpha, lower = 0, upper = 1,
+##           tr = tr, sr = sr, to = to, so = so, x = x, y = y, normConst = nC)
+@
+
+% asdsad
+
+Assuming a beta prior for $\alpha$ and conditioning on the replication data
+leads to the posterior distribution
+\begin{align}
+  f(\alpha, \theta \given \that_{r}, \that_{o}, \sigma_{o}, \sigma_{r}, x, y)
+  =& \frac{\Nor(\that_{r}; \theta, \sigma^{2}_{r}) \times
+     \Nor(\theta; \that_{o}, \sigma^{2}_{o}/\alpha) \times \Be(\alpha; x, y)}{
+     f(\that_{r} \given \that_{o}, \sigma_{r}, \sigma_{o}, x, y)}
+     \label{eq:posterior} \\
+  \propto& \exp\left[-\frac{1}{2} \left\{
+           \left(\frac{1}{\sigma^{2}_{r}} + \frac{\alpha}{\sigma^{2}_{o}}\right)
+           \left(\theta - \frac{\that_{r}/\sigma^{2}_{r} + (\that_{r}\, \alpha) / \sigma^{2}_{o}}{
+           1/\sigma^{2}_{r} + \alpha/\sigma^{2}_{o}}\right)^{2} +
+           \frac{(\that_{o} - \that_{r})^{2}}{\sigma^{2}_{o}/\alpha + \sigma^{2}_{r}}
+           \right\}\right]  \nonumber \\
+   & \times \alpha^{x - 1/2} \, (1 - \alpha)^{y - 1} \nonumber
+\end{align}
+with $\Nor(z; m, v)$ the density function of a normal distribution with mean $m$
+and variance $v$ evaluated at $z$, and $\Be(u; q, p)$ the density function of a
+beta distribution with parameters $q$ and $p$ evaluated at $u$. The normalizing
+constant
+\begin{align*}
+  f(\that_{r} \given \that_{o}, \sigma_{r}, \sigma_{o}, x, y)
+  &= \int_{0}^{1} \int_{-\infty}^{\infty} \Nor(\that_{r}; \theta, \sigma^{2}_{r}) \times
+  \Nor(\theta; \that_{o}, \sigma^{2}_{o}/\alpha) \times \Be(\alpha; x, y) \,
+  \text{d}\theta \, \text{d}\alpha \\
+  &= \int_{0}^{1}  \Nor(\that_{r}; \that_{o},  \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha)
+  \times \Be(\alpha; x, y) \, \text{d}\alpha
+\end{align*}
+is not available in closed form but requires numerical integration with respect
+to the prior distribution of $\alpha$. Finally, if inference concerns only one
+parameter, a marginal posterior distributions for either $\alpha$ or $\theta$
+can be obtained by integrating out the respective nuisance parameter
+from~\eqref{eq:posterior}. In the case of the power parameter $\alpha$, this leads to
+\begin{align}
+   f(\alpha, \given \that_{r}, \that_{o}, \sigma_{o}, \sigma_{r}, x, y)
+  =& \frac{\Nor(\that_{r}; \that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \times
+     \Be(\alpha; x, y)}{f(\that_{r} \given \that_{o}, \sigma_{r}, \sigma_{o}, x, y)}
+     \label{eq:margalpha}
+\end{align}
+while for the effect size $\theta$, we have
+\begin{align*}
+  f(\theta, \given \that_{r}, \that_{o}, \sigma_{o}, \sigma_{r}, x, y)
+  =& \frac{\Nor(\that_{r}; \theta, \sigma^{2}_{r})  \int_{0}^{1}
+     \Nor(\theta; \that_{o}, \sigma^{2}_{o}/\alpha) \times \Be(\alpha; x, y)
+     \, \text{d}\alpha}{f(\that_{r} \given \that_{o}, \sigma_{r}, \sigma_{o}, x, y)}.
+\end{align*}
+
+
+<< "example-posterior" >>=
+## TODO find better / real example
+data(protzko2020, package = "ReplicationSuccess")
+ex <- "Labels"
+dat <- subset(protzko2020, experiment == ex)
+to <- dat$smd[dat$type == "original"]
+tr <- dat$smd[dat$type == "external-replication"]
+so <- dat$se[dat$type == "original"]
+sr <- dat$se[dat$type == "external-replication"]
+
+## uniform prior for alpha
+x <- 1
+y <- 1
+@
+
+\subsection{Example ``\Sexpr{ex}''}
+We will now apply the methodology to data from a large-scale replication project
+by \citet{Protzko2020}. The project featured an experiment called ``\Sexpr{ex}''
+for which the original study found the following result: ``When a researcher
+uses a label to describe people who hold a certain opinion, he or she is
+interpreted as disagreeing with those attributes when a negative label is used
+and agreeing with those attributes when a positive label is used.'' This finding
+came with a standardized mean difference effect estimate
+$\that_{o} = \Sexpr{round(to, 2)}$ and standard error
+$\sigma_{o} = \Sexpr{round(so, 2)}$. Subsequently, four replication studies were
+conducted, three of them by a different lab than the original one.
+
+\begin{figure}[!htb]
+<< "fig-example-posterior", fig.height = 6 >>=
+## grid for posterior
+nalpha <- 200
+ntheta <- 200
+alphaseq <- seq(0, 1, length.out = nalpha)
+thetaseq <- seq(0, 0.6, length.out = ntheta)
+parGrid <- expand.grid(alpha = alphaseq, theta = thetaseq)
+
+## compute joint posterior
+jointplotDF <- do.call("rbind", lapply(X = seq(1, length(tr)),
+                                       FUN = function(i) {
+    ## precompute the normalizing constant because the same for all pairs of parameters
+    nC <- normConst(tr = tr[i], sr = sr[i], to = to, so = so, x = x, y = y)
+    ## compute posterior density
+    pDens <- posteriorDens(theta = parGrid$theta, alpha = parGrid$alpha, tr = tr[i],
+                           sr = sr[i], to = to, so = so, x = x, y = y, normConst = nC)
+    parGrid$density <- pDens
+    parGrid$tr <- tr[i]
+    parGrid$sr <- sr[i]
+    return(parGrid)
+}))
+
+## plot posterior
+library(ggplot2)
+library(colorspace)
+plotTop <- ggplot(data = jointplotDF, aes(x = theta, y = alpha, fill = density)) +
+    facet_wrap(~ tr + sr,
+               labeller = label_bquote({hat(theta)[italic(r)] == .(round(tr, 2))} * "," ~
+                                           sigma[italic(r)] == .(round(sr, 2)))) +
+    geom_raster() +
+    scale_fill_continuous_sequential(palette = "Blues 3", rev = TRUE) +
+    labs(x = bquote("Effect size" ~ theta),
+         y = bquote("Power parameter" ~ alpha),
+         fill = "Posterior \ndensity") +
+    guides(fill = guide_colorbar(barheight = 10, barwidth = 0.5)) +
+    theme_minimal() +
+    theme(panel.grid.minor = element_blank())
+
+## ## with base R
+## pDensMat <- matrix(data = pDens, ncol = nalpha, byrow = TRUE)
+## filled.contour(x = thetaseq, y = alphaseq, z = pDensMat,
+##                xlab = bquote("Effect size" ~ theta),
+##                ylab = bquote("Power parameter" ~ alpha),
+##                ## key.title = title(main = "Density"),
+##                ## plot.title = title(main = "Posterior distribution"),
+##                nlevels = 15,
+##                color.palette = function(n) hcl.colors(n = n, palette = "viridis"))
+
+
+## compute marginal posteriors
+alphaplotDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    ## precompute the normalizing constant because the same for all pairs of parameters
+    nC <- normConst(tr = tr[i], sr = sr[i], to = to, so = so, x = x, y = y)
+    ## compute marginal posterior density
+    pDens <- posteriorDensAlpha(alpha = alphaseq, tr = tr[i], sr = sr[i], to = to,
+                                so = so, x = x, y = y, normConst = nC)
+    out <- data.frame(x = alphaseq, density = pDens,
+                      parameter = "'Power parameter' ~ alpha", tr = tr[i], sr = sr[i])
+    return(out)
+}))
+thetaplotDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    ## precompute the normalizing constant because the same for all pairs of parameters
+    nC <- normConst(tr = tr[i], sr = sr[i], to = to, so = so, x = x, y = y)
+    ## compute marginal posterior density
+    pDens <- posteriorDensTheta(theta = thetaseq, tr = tr[i], sr = sr[i], to = to,
+                                so = so, x = x, y = y, normConst = nC)
+    out <- data.frame(x = thetaseq, density = pDens,
+                      parameter = "'Effect size' ~ theta", tr = tr[i], sr = sr[i])
+    return(out)
+}))
+margplotDF <- rbind(alphaplotDF, thetaplotDF)
+margplotDF$trFormat <- paste0("{hat(theta)[italic('r')] == ",
+                              round(margplotDF$tr, 2),
+                              "}*',' ~ sigma[italic('r')] == ",
+                              round(margplotDF$sr, 2))
+
+## plot marginals
+plotBot <- ggplot(data = margplotDF, aes(x = x, y = density, color = trFormat)) +
+    facet_wrap(~ parameter, scales = "free", labeller = label_parsed,
+               strip.position = "bottom") +
+    geom_line(alpha = 0.9) +
+    theme_bw() +
+    labs(x = NULL, y = "Marginal posterior density", color = "") +
+    scale_color_discrete_qualitative(palette = "Dark 3", labels = scales::parse_format()) +
+    theme(legend.position = "top", panel.grid.minor = element_blank(),
+          strip.background.x = element_blank(), strip.placement = "outside",
+          legend.text.align = 0)
+
+ggpubr::ggarrange(plotTop, plotBot, ncol = 1, heights = c(0.5, 0.5))
+@
+\caption{Bayesian analysis of three replication studies from the replication
+  project by \citet{Protzko2020}. Shown are joint (top) and marginal (bottom)
+  posterior distributions of effect size $\theta$ and power parameter $\alpha$.
+  A power prior for the effect size $\theta$ is constructed from the original
+  effect estimate $\that_{o} = \Sexpr{round(to, 2)}$ (with standard error
+  $\sigma_{o} = \Sexpr{round(so, 2)}$) and an initial flat prior
+  $f(\theta) \propto 1$. A
+  $\alpha \sim \Be(\Sexpr{round(x, 2)}, \Sexpr{round(y, 2)})$ marginal prior
+  distribution is used for the power parameter.}
+\label{fig:post2d}
+\end{figure}
+
+Figure~\ref{fig:post2d} shows joint and marginal posterior distributions for
+effect size $\theta$ and power parameter $\alpha$ based on the results of the
+three external replication studies. % The data from the original data is used to
+% construct a power prior for the unknown standardized mean difference effect size
+% $\theta$ along with a uniform prior for the power parameter
+% $\alpha \sim \Be(1, 1)$.
+We see that one replication found a virtually identical effect estimate as the
+original study ($\that_{r} = \Sexpr{round(tr[3], 2)}$), while the other two
+replications found either a smaller or larger effect estimate
+($\that_{r} = \Sexpr{round(tr[1], 2)}$ and
+$\that_{r} = \Sexpr{round(tr[2], 2)}$). This is reflected in the marginal
+posterior distributions of the power parameter $\alpha$. That is, the marginal
+distribution of replication with the very conflicting effect estimate is sharply
+peaked and has most mass at small values of $\alpha$. In contrast, the marginal
+distribution based on the replication with strongly agreeing effect estimate is
+monotonically increasing, giving the highest support to the value $\alpha = 1$.
+Yet, the posterior density at $\alpha = 1$ is not much higher than one (the
+density of prior), suggesting that it is difficult to obtain conclusive
+posterior inferences about $\alpha$, even from two highly precise studies.
+
+
+The marginal distribution of the effect size $\theta$ shows that the degree of
+compatibility between the two studies, influences how much information is
+borrowed from the original study. For instance, the marginal posterior density
+based on the most compatible replication
+($\that_{r} = \Sexpr{round(tr[3], 2)}$), is the most concentrated among the
+three replications, despite that this estimate was the least. In contrast, the
+marginal posterior of the most conflicting estimate
+($\that_{r} = \Sexpr{round(tr[2], 2)}$) borrows fewer information and is the
+least peaked posterior, despite being the most precise estimate among the three.
+
+
+\subsection{Connection to hierarchical models}
+Hierarchical modeling is another approach that allows for incorporation of
+historical data, and hierarchical models have also been used in the replication
+setting previously \citep{Bayarri2002, Pawel2020}. Assume a hierarchical model
+\begin{subequations}
+\label{eq:hierarch-model}
+\begin{align*}
+  \that_{i} \given \theta_{i}\, &\sim \Nor(\theta_{i}, \sigma^{2}_{i}) \\
+  \theta_{i} \given \theta_{*} &\sim \Nor(\theta_{*}, \tau^{2}) \\
+  \theta_{*} &\sim \Nor(0, \infty)
+\end{align*}
+\end{subequations}
+for study $i \in \{o ,r\}$.
+% Conditional on the heterogeneity variance $\tau^{2}$, t
+The joint posterior is then proportional to
+\begin{align}
+  \label{eq:jointpost}
+  f(\theta_{r}, \theta_{o}, \theta_{*} \given \that_{o}, \that_{r}, \tau^{2})
+  \propto \prod_{i \in \{o, r\}} \Nor(\that_{i}; \theta_{i}, \sigma^{2}_{i})
+  \, \Nor(\theta_{i}; \theta_{*}, \tau^{2}).
+\end{align}
+By integrating out $\theta_{o}$ and $\theta_{*}$ from~\eqref{eq:jointpost}, one
+can show that the marginal posterior distribution of the replication effect size
+$\theta_{r}$ is
+\begin{align}
+  \label{eq:posthierarch}
+  \theta_{r} \given \that_{o}, \that_{r}, \tau^{2}
+  \sim \Nor\left(\frac{\that_{r}/\sigma^{2}_{r} + \that_{o}/(2\tau^{2} +
+  \sigma^{2}_{o})}{1/\sigma^{2}_{r} + 1/(2\tau^{2} + \sigma^{2}_{o})},
+  \frac{1}{1/\sigma^{2}_{r} + 1/(2\tau^{2} + \sigma^{2}_{o})}\right).
+\end{align}
+
+The question is now whether there is a correspondence between the hierarchical
+and the power prior approach. Under the power prior and for a fixed power
+parameter $\alpha$, the posterior of the effect size $\theta$
+from~\eqref{eq:posterior} simplifies to a normal
+\begin{align}
+  \label{eq:postpower}
+  \theta \given \that_{o}, \that_{r}, \alpha
+  \sim \Nor\left(\frac{\that_{r}/\sigma^{2}_{r} +
+  (\that_{o}\alpha)/\sigma^{2}_{o}}{1/\sigma^{2}_{r} + \alpha/\sigma^{2}_{o}},
+  \frac{1}{1/\sigma^{2}_{r} + \alpha/\sigma^{2}_{o}}\right).
+\end{align}
+Theorem 2.2 in \citet{Chen2006} establishes that the two posterior
+distributions~\eqref{eq:posthierarch} and~\eqref{eq:postpower} match if and only
+if
+\begin{align*}
+  \alpha = \frac{\sigma^{2}_{o}}{2\tau^{2} + \sigma^{2}_{o}},
+  % &\text{respectively}&
+  % &\tau^{2} = \left(\frac{1}{\alpha} - 1\right) \,
+  %   \frac{\sigma^{2}_{o}}{2}
+\end{align*}
+respectively
+\begin{align*}
+  \tau^{2} = \left(\frac{1}{\alpha} - 1\right) \, \frac{\sigma^{2}_{o}}{2}.
+\end{align*}
+For instance, a power prior model with $\alpha = 1$ corresponds to a
+hierarchical model with $\tau^{2} = 0$, and a hierarchical model with
+$\tau \to \infty$ corresponds to a power prior model with $\alpha \downarrow 0$.
+% it follows from Theorem 2.2 in \citet{Chen2006} that the posterior distribution
+% of the replication effect size
+% $f(\theta_{r} \given \that_{o}, \that_{r}, \sigma_{o}, \sigma_{r}, \tau^{2})$
+% matches with the posterior distribution of the effect size based on the (fixed
+% $\alpha$) power prior
+% $f(\theta \given \that_{o}, \that_{r}, \sigma_{o}, \sigma_{r}, \alpha)$ if and
+% only if
+% \begin{align*}
+%   \alpha = \frac{\sigma^{2}_{o}}{2\tau^{2} + \sigma^{2}_{o}}.
+% \end{align*}
+% This means that in the case of fixed power parameters $\alpha$ , respectively,
+% between-study heterogeneity variances $\tau^{2}$, there is an exact
+%       correspondence of the two approaches.
+Interestingly, there is a direct mapping from $\alpha$ to the popular relative
+heterogeneity measure $I^{2} = \tau^{2}/(\tau^{2} + \sigma^{2}_{o})$
+\citep{Higgins2002}, that is
+\begin{align*}
+  \alpha = \frac{1 - I^{2}}{1 + I^{2}},
+\end{align*}
+see also Figure~\ref{fig:I2}. We see that there is an almost linear relationship
+betwen the two. A useful heuristic to connect power priors to hierarchical
+models is thus $\alpha \approx 1 - I^{2}$.
+
+\begin{figure}[!htb]
+<< "I2plot", fig.height = 3 >>=
+I2seq <- seq(from = 0, to = 1, length.out = 500)
+alphaseq <- (1 - I2seq)/(1 + I2seq)
+plotDF <- data.frame(I2 = I2seq, alpha = alphaseq, tau2 = so^2/2*(1/alphaseq - 1))
+ggplot(data = plotDF, aes(x = I2, y = alpha)) +
+    geom_line() +
+    labs(x = bquote(I^2), ## bquote(I^2 == frac(tau^2, tau^2 + sigma["o"]^2)),
+         y = bquote(alpha)) +
+    coord_fixed() +
+    theme_bw() +
+    theme(panel.grid.minor = element_blank())
+@
+\caption{Relative heterogeneity $I^{2} = \tau^{2}/(\tau^{2} + \sigma^{2}_{o})$
+  of hierarchical model and power parameter $\alpha$ from power prior model
+  which lead to matching posteriors for the effect sizes $\theta$ and
+  $\theta_{r}$.}
+\label{fig:I2}
+\end{figure}
+
+It is unclear whether a mapping exists in cases where $\alpha$ and $\tau^{2}$
+are random. If it would exist, it must hold for any $\theta$ = $\theta_{r}$ that
+\begin{align}
+  \label{eq:margequal}
+  \int_{0}^{\infty} f(\theta_{r} \given \that_{o}, \that_{r}, \tau^{2})\,
+  f(\tau^{2} \given \that_{o}, \that_{r})\, \text{d} \tau^{2}
+  &= \int_{0}^{1} f(\theta \given \that_{o}, \that_{r}, \alpha)\,
+    f(\alpha \given \that_{o}, \that_{r}) \, \text{d} \alpha.
+  % &=
+  %   \int_{0}^{\infty} f(\theta \given \that_{o}, \that_{r}, \alpha(\tau^{2}_{*}))\,
+  % f(\alpha(\tau^{2}_{*}) \given \that_{o}, \that_{r}) \,
+  % \frac{2\sigma^{2}_{o}}{(2 \tau^{2}_{*} + \sigma^{2}_{o})^{2}} \,
+  % \text{d} \tau^{2}_{*} \\
+\end{align}
+We can now apply a change of variables to the left or right hand side of
+\eqref{eq:margequal} so that the marginal posteriors conditional on $\tau^{2}$
+and $\alpha$ match. It is then left to investigate whether there are priors
+$f(\tau^{2})$ and $f(\alpha)$ so that also the marginal posteriors of $\tau^{2}$
+and $\alpha$ match.
+
+By replacing the beta prior in~\eqref{eq:margalpha} with an unspecified prior
+$f(\alpha)$, we can see that the marginal posterior distribution of $\alpha$ is
+proportional to
+\begin{align*}
+  f(\alpha \given \that_{o}, \that_{r})
+  \propto f(\alpha) \times
+  \Nor(\that_{r}; \that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha).
+\end{align*}
+After a change of variables $\tau^{2}_{*} = (1/\alpha - 1)\sigma^{2}_{o}/2$ this
+becomes
+\begin{align*}
+  f(\tau^{2}_{*} \given \that_{o}, \that_{r})
+  \propto f(\alpha = \sigma^{2}_{o}/(2 \tau^{2}_{*} + \sigma^{2}_{o})) \,
+  \frac{2\sigma^{2}_{o}}{(2 \tau^{2}_{*} + \sigma^{2}_{o})^{2}} \times
+  (\sigma^{2}_{o} + \sigma^{2}_{r} +  2\tau^{2}_{*})^{-1/2} \,
+  % \Nor(\that_{r}; \that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o} + 2 \tau^{2}_{*}).
+  \exp\left\{
+  - \frac{1}{2} \frac{(\that_{r} - \that_{o})^{2}}{\sigma^{2}_{o} +
+  \sigma^{2}_{r} + 2 \tau^{2}_{*}}\right\}.
+\end{align*}
+By integrating out $\theta_{r}, \theta_{o}$, and $\theta_{*}$ from the joint
+posterior under the hierarchical model, one can show that the marginal
+posterior of the heterogeneity variance $\tau^{2}$ is proportional to
+\begin{align*}
+  f(\tau^{2} \given \that_{o}, \that_{r})
+  % \propto
+  % f(\tau^{2}) \times
+  % \prod_{i\in \{o, r\}} \Nor(\that_{i}; \hat{\mu}(\tau^{2}), \sigma^{2}_{i} + \tau^{2})
+  % \big / \Nor(\hat{\mu}(\tau^{2}); \hat{\mu}(\tau^{2}), \widehat{V}(\tau^{2}))
+  \propto
+  f(\tau^{2}) \times
+  (\sigma^{2}_{o} + \sigma^{2}_{r} +  2\tau^{2})^{-1/2} \, \exp\left\{
+  - \frac{1}{2} \frac{(\that_{r} - \that_{o})^{2}}{\sigma^{2}_{o} +
+  \sigma^{2}_{r} + 2 \tau^{2}}\right\}.
+\end{align*}
+% with
+% $\widehat{V}(\tau^{2}) = 1/\{\sum_{i \in \{o, r\}} 1/(\tau^{2} + \sigma^{2}_{i})\}$
+% and
+% $\hat{\mu}(\tau^{2}) = \{\sum_{i \in \{o, r\}} \that_{i}/(\tau^{2} + \sigma^{2}_{i})\}
+%     \widehat{V}(\tau^{2})$ \citep[chapter 5.4]{Gelman2013}.
+This implies that the marginal posteriors of the effect sizes $\theta$ and
+$\theta_{*}$ match if it holds for every $\tau^{2} = \tau^{2}_{*}$ that
+\begin{align*}
+  f(\tau^{2}) = f(\alpha = \sigma^{2}_{o}/(2 \tau^{2}_{*} + \sigma^{2}_{o})) \,
+  \frac{2\sigma^{2}_{o}}{(2 \tau^{2}_{*} + \sigma^{2}_{o})^{2}}.
+\end{align*}
+For example, if we assign a $\Be(x, y)$ prior to $\alpha$, the posteriors will
+match when we assign a
+\begin{align*}
+  f(\tau^{2}) \propto
+  \left(\frac{2\tau^{2}}{\sigma^{2}_{o}} + 1\right)^{1 - x}
+  \left(\frac{\sigma^{2}_{o}}{2\tau^{2}} + 1\right)^{1 - y}
+  \frac{2\sigma^{2}_{o}}{(2 \tau^{2} + \sigma^{2}_{o})^{2}}
+\end{align*}
+prior on $\tau^{2}$.
+
+\begin{figure}[!htb]
+<< "check-cov", fig.height = 5 >>=
+## show some corresponding priors
+ftau2 <- function(tau2, a, b, so) {
+    dbeta(x = so^2/(2*tau2 + so^2), shape1 = a, shape2 = b) *
+        2*so^2/(2*tau2 + so^2)^2
+}
+
+paramsGrid <- data.frame(a = c(1, 2, 1),
+                         b = c(1, 1, 2))
+aseq <- seq(0, 1, length.out = 500)
+tau2seq <- seq(0, 0.1, length.out = 500)^2
+alphaDF <- do.call("rbind", lapply(X = seq(1, nrow(paramsGrid)), FUN = function(i) {
+    a <- paramsGrid$a[i]
+    b <- paramsGrid$b[i]
+    dens <- dbeta(x = aseq, shape1 = a, shape = b)
+    out <- data.frame(x = aseq, xlab = "alpha", density = dens, a = a, b = b,
+                      ylab = paste0("{italic(x) ==", a, "}*','~ italic(y) ==", b))
+    return(out)
+}))
+tau2DF <- do.call("rbind", lapply(X = seq(1, nrow(paramsGrid)), FUN = function(i) {
+    a <- paramsGrid$a[i]
+    b <- paramsGrid$b[i]
+    dens <- ftau2(tau2 = tau2seq, a = a, b = b, so = so)
+    out <- data.frame(x = tau2seq, xlab = "tau^2", density = dens, a = a, b = b,
+                      ylab = paste0("{italic(x) ==", a, "}*','~ italic(y) ==", b))
+    return(out)
+}))
+plotDF <- rbind(alphaDF, tau2DF)
+
+plotalpha <- ggplot(data = alphaDF, aes(x = x, y = density)) +
+    facet_grid(ylab ~ ., labeller = label_parsed, scales = "free",
+               switch = "x") +
+    geom_line() +
+    labs(x = bquote(alpha), y = NULL) +
+    expand_limits(y = c(0, 3)) +
+    theme_bw() +
+    theme(panel.grid.minor = element_blank(),
+          ## strip.text.y = element_blank(),
+          strip.background.x = element_blank(), strip.placement = "outside")
+
+plottau <- ggplot(data = tau2DF, aes(x = x, y = density)) +
+    facet_grid(ylab ~ ., labeller = label_parsed, scales = "free",
+               switch = "x") +
+    geom_line() +
+    labs(x = bquote(tau^2), y = "Density") +
+    scale_x_continuous(sec.axis = sec_axis(trans = ~ ./so^2,
+                                           name = bquote(tau^2/sigma[italic("o")]^2))) +
+    theme_bw() +
+    theme(panel.grid.minor = element_blank(), strip.text.y = element_blank(),
+          strip.background.x = element_blank(), strip.placement = "outside")
+
+ggpubr::ggarrange(plottau, plotalpha, ncol = 2, align = "h")
+
+## ggplot(data = plotDF,
+##        aes(x = x, y = density)) +
+##     facet_grid(ylab ~ xlab, labeller = label_parsed, scales = "free",
+##                switch = "x") +
+##     geom_line() +
+##     labs(x = NULL, y = "Density") +
+##     theme_bw() +
+##     theme(strip.background.x = element_blank(), strip.placement = "outside")
+
+
+
+## integrate(f = ftau2, lower = 0, upper = Inf, a = 2, b = 5, so = 0.1)
+## t2seq <- seq(0, 1, length.out = 1000)
+## plot(t2seq, ftau2(tau2 = t2seq, a = 1, b = 1, so = 0.5), type = "l")
+
+## reestimate marginal posteriors under hierarchical model
+normConstHierarch <- function(to, tr, so, sr, x, y) {
+   ## TODO implement normalization
+}
+margPostThetarHierarch_ <- function(thetar, to, tr, so, sr, x, y,
+                                    normConst = 1) {
+    intFun <- function(tau2) {
+        ## marginal posterior conditional on tau2
+        dnorm(x = thetar,
+              mean = (tr/sr^2 + to/(2*tau2 + so^2))/(1/sr^2 + 1/(2*tau2 + so^2)),
+              sd = sqrt(1/(1/sr^2 + 1/(2*tau2 + so^2)))) *
+            ## marginal posterior of tau2 (up to proportionality)
+            exp(-0.5*(tr - to)^2/(so^2 + sr^2 + 2*tau2)) /
+            sqrt(so^2 + sr^2 + 2*tau2) *
+            dbeta(x = so^2/(2*tau2 + so^2), shape1 = x, shape = y) *
+            2*so^2/(2*tau2 + so)^2
+    }
+    res <- try(integrate(f = intFun, lower = 0, upper = Inf)$value)
+    if (class(res) == "try-error") {
+        out <- NaN
+    } else {
+        out <- res / normConst
+    }
+    return(out)
+}
+margPostThetarHierarch <- Vectorize(FUN = margPostThetarHierarch_)
+## thetarseq <- seq(0, 0.6, length.out = 1000)
+## plot(thetarseq,
+##      margPostThetarHierarch(thetar = thetarseq, to = to, tr = tr[1], so = so,
+##                             sr = sr[1], x = 1, y = 1), type = "l")
+## abline(v = 0.2)
+@
+
+% hi
+
+\caption{Beta priors on power parameter $\alpha \sim \Be(x, y)$ (right) and
+  corresponding priors on heterogeneity variance $\tau^2$ (left) that lead to
+  matching marginal posteriors for the effect sizes $\theta$ and $\theta_{r}$.
+  The variance of the original effect estimate
+  $\sigma_{o} = \Sexpr{round(so, 2)}^{2}$ from the ``\Sexpr{ex}'' experiment is
+  used for the transformation to the heterogeneity variance scale $\tau^{2}$.}
+\label{fig:matchingpriors}
+\end{figure}
+
+Figure~\ref{fig:matchingpriors} illustrates several examples of matching priors
+using the variance of the original effect estimate
+% $\sigma_{o} = \Sexpr{round(so, 2)}^{2}$
+from the ``\Sexpr{ex}'' experiment. % For instance, we see that a uniform prior on
+% $\alpha$ implies a
+% $f(\tau^{2}) \propto (2\sigma^{2}_{o})/(2\tau^{2} + \sigma^{2})^{2}$ for
+    %     $\tau^{2}$.
+We see that the uniform prior on $\alpha$ corresponds to a
+$f(\tau^{2}) \propto \sigma^{2}_{o}/(2\tau^{2} + \sigma^{2}_{o})^{2}$ prior
+which is similar to the ``uniform shrinkage'' prior
+$f(\tau^{2}) \propto \sigma^{2}_{o}/(\tau^{2} + \sigma^{2}_{o})^{2}$
+\citep{Daniels1999}. This prior has the highest density at $\tau^{2} = 0$,
+however, it still gives mass to larger values of $\tau^{2}$. In contrast, the
+$\alpha \sim \Be(2, 1)$ prior gives most mass to small values of $\tau^{2}$
+relative to $\sigma^{2}$, while the $\alpha \sim \Be(2, 1)$ prior gives no
+mass to small $\tau^{2}$ and has zero density at $\tau^{2} = 0$.
+
+\section{Hypothesis testing}
+Apart from estimation of $\theta$ and $\alpha$, one may also want to test
+hypotheses. The standard Bayesian approach is to compute the Bayes factor
+contrasting the likelihood of the data under two competing hypothesis
+\citep{Jeffreys1961, Kass1995}.
+
+
+\subsection{Hypotheses about the effect size}
+We may want to quantify the evidence for a non-zero effect size $\theta$ by
+testing $H_{0} \colon \theta = 0$ to $H_{1} \colon \theta \neq 0$. This requires
+specification of a prior distribution under $H_{1}$, a natural choice is to use
+the power prior based on the original data from~\eqref{eq:pp}. The respective
+Bayes factor is then given by
+\begin{align}
+  % \BF_{01}^{\theta}
+  \BF_{01}(\that_{r}\given \alpha \sim f(\alpha \given H_{1}))
+  &= \frac{f(\that_{r} \given H_{0})}{f(\that_{r} \given H_{1})}
+    =  \frac{\Nor(\that_{r}; 0, \sigma^{2}_{r})}{\int_{0}^{1} \Nor(\that_{r}; \that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \, f(\alpha \given H_{1}) \, \text{d}\alpha}.
+    % because of S-D ratio this is also given by
+    % \frac{f(\theta = 0 \given \that_r, \that_o, \sigma_o, \sigma_r)}{f(\theta = 0)}
+    % the ratio of marginal posterior to marginal prior evaluated at zero
+  \label{eq:bf01}
+\end{align}
+{\samuel{not sure about the notation}}
+A reasonable choice for the prior of $\alpha$ under $H_{1}$ is a $\Be(1, 1)$
+distribution. However, it is worth noting that fixing $\alpha = 1$ leads to the
+\emph{replication Bayes factor} under normality \citep{Verhagen2014, Ly2018,
+  Pawel2020b}, \ie the Bayes factor contrasting a point null hypothesis to the
+posterior distribution of the effect size based on the original data (and in
+this case a uniform initial prior). The power prior version is thus a
+generalization of the standard replication Bayes factor where the original data
+are to some extent discounted.
+
+
+\subsection{Hypotheses about the power parameter}
+In order to quantify compatibility of original and replication study we may want
+to test hypotheses regarding the power parameter $\alpha$ as it provides a link
+between the studies. For example, we might want to test
+$H_{\text{d}} \colon \alpha = 0$ (``different'') vs.
+$H_{\text{c}} \colon \alpha = 1$ (``compatible''). One issue is that for a flat
+initial prior $f(\theta) \propto 1$, the power prior with $\alpha = 0$ is not
+proper and so the resulting Bayes factor is only defined up to an arbitrary
+constant. Instead of the flat prior, we may thus choose an uninformative but
+proper initial prior, \eg the unit-information prior \citep{Kass1995b}
+\begin{align*}
+  \theta \sim \Nor(0, \kappa^{2})
+\end{align*}
+with $\kappa^{2}$ the variance from one (effective) observation. This leads to
+the Bayes factor
+\begin{align}
+  \BF_{\text{dc}}(\that_{r}\given \theta \sim \Nor(0, \kappa^{2}))
+  &= \frac{f(\that_{r} \given H_{\text{d}})}{f(\that_{r}
+    \given H_{\text{c}})}
+    = \frac{\Nor(\that_{r};0, \sigma^{2}_{r} + \kappa^{2})}{\Nor(\that_{r}; s  \that_{o}, \sigma^{2}_{r} + s  \sigma^{2}_{o})}
+    \label{eq:bfalpha}
+\end{align}
+with shrinkage factor
+$s = (\kappa^{2}/\sigma^{2}_{o}) / (1 + \kappa^{2}/\sigma^{2}_{o})$.
+{\samuel{also here not sure about notation}}
+
+\subsection{Example ``\Sexpr{ex}'' (continued)}
+Table~\ref{tab:hypothesis} displays the results of the proposed hypothesis tests
+applied to the three replications of the experiment ``\Sexpr{ex}''. We see from
+the Bayes factors contrasting $H_{0}$ to $H_{1}$ that the data indicate absence
+of evidence for either hypothesis in the first replication, but decisive
+evidence for $H_{1}$ in the second and third replication. In all three cases the
+Bayes factors are very close to the standard replication Bayes factors obtained
+from setting $\alpha = 1$.
+\begin{table}[!htb]
+  \centering
+  \caption{Hypothesis testing for replications of experiment ``\Sexpr{ex}'' with
+    original standardized mean difference effect estimate
+    $\that_{o} = \Sexpr{round(to, 2)}$ and standard error
+    $\sigma_{o} = \Sexpr{round(so, 2)}$. Shown replication effect estimates
+    $\that_{r}$ with standard errors $\sigma_{r}$, Bayes factors contrasting
+    $H_{0}\colon \theta = 0$ to $H_{1} \colon \theta \neq 0$ for different
+    priors of $\alpha$ under $H_{1}$, and Bayes factor contrasting
+    $H_{d}\colon \alpha = 0$ to $H_{c}\colon \alpha = 1$.\\}
+  \label{tab:hypothesis}
+
+<< "bf-testing", results = "asis" >>=
+## compute BFs for effect sizes and power parameter
+k <- sqrt(2)
+bfDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    ## compute marginal density under H1
+    fH1 <- normConst(tr = tr[i], sr = sr[i], to = to, so = so, x = 1, y = 1)
+    ## compute marginal density under H0
+    fH0 <- dnorm(x = tr[i], mean = 0, sd = sr[i])
+    ## compute bf for effect size
+    bf01 <- fH0/fH1
+    ## compute also replication bf
+    bfr <- fH0/dnorm(x = tr[i], mean = to, sd = sqrt(sr[i]^2 + so^2))
+    ## compute power parameter BF based on unit-information prior
+    g <- k^2/so^2
+    s <- g/(1 + g)
+    fHd <- dnorm(x = tr[i], mean = 0, sqrt(sr[i]^2 + k^2))
+    fHc <- dnorm(x = tr[i], mean = s*to, sqrt(sr[i]^2 + s*so^2))
+    bfdc <- fHd/fHc
+    ## put all in DF
+    out <- data.frame(tr = tr[i], sr = sr[i], bf = bf01, bfr = bfr,
+                      bfdc = bfdc)
+    return(out)
+}))
+
+## create nice table
+library(xtable)
+library(dplyr)
+dfTab <- bfDF %>%
+    mutate(bf = BayesRep::formatBF(bf),
+           bfr = BayesRep::formatBF(bfr),
+           bfdc = BayesRep::formatBF(bfdc),
+           tr = round(tr, 2),
+           sr = round(sr, 2))
+xtab <- xtable(dfTab)
+colnames(xtab) <- c("$\\hat{\\theta}_r$",
+                    "$\\sigma_r$",
+                    "$\\BF_{01}(\\hat{\\theta}_r \\given \\alpha \\sim \\Be(1, 1))$",
+                    "$\\BF_{01}(\\hat{\\theta}_r \\given \\alpha = 1)$",
+                    "$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given \\theta \\sim \\Nor(0, 2))$")
+align(xtab) <- rep("c", length(colnames(xtab)) + 1)
+print(xtab, floating = FALSE, include.rownames = FALSE,
+      sanitize.text.function = function(x){x}, booktabs = TRUE)
+@
+\end{table}
+
+In order to compute the Bayes factor for testing $H_{d}$ vs. $H_{c}$ we need to
+specify a unit variance for the unit-information prior. A crude approximation
+for the variance of a standardized mean difference effect estimate is given by
+$\Var(\that_i) = 4/n_{i}$ with $n_{i}$ the total sample size of the study, and
+assuming equal sample size in both groups \citep[p. 5]{Hedges2021}. We may thus
+set the variance of the unit-information prior to $\kappa^{2} = 2$ since at
+least one observation from each group is required to estimate a standardized
+mean difference (assuming the variance is known). Based on this choice, the data
+provide strong, respectively substantial evidence $H_{\text{c}}$ in the third
+and first replication study, while they indicate strong evidence for
+$H_{\text{d}}$ in the second replication study.
+
+To conclude, our analysis suggests that only the third replication was
+successful in the sense that it is compatible with the original study while also
+providing evidence against a null effect. The first replication is compatible
+but does not provide any evidence for a non-zero effect, whereas the second
+replication provides much evidence for an effect but is incompatible with the
+original study.
+
+\subsection{Asymptotics}
+It is of interest to investigate the asymptotic behavior of the Bayes
+factors~\eqref{eq:bf01} and~\eqref{eq:bfalpha}. For instance, we may want to
+understand what happens when the sample size of the replication study $n_{r}$
+becomes larger. Assume that $\that_{r}$ is a consistent estimator of the true
+underlying effect size $\tilde{\theta}$, and that the standard error is
+inversely proportional to the square root of the sample size
+$\sigma_{r} = \kappa/\sqrt{n_{r}}$ with $\kappa^{2}$ some unit variance. As the
+replication sample size goes to infinity ($n_{r} \to \infty$), the estimate will
+converge in probability to the true effect size, and the standard error will go
+to zero.
+
+<< "bf-bound" >>=
+k <- sqrt(2)
+g <- k^2/so^2
+s <- g/(1 + g)
+trueMin <- to/(1 - s*so^2/k^2)
+bfBound <- sqrt(s*so^2/k^2) * exp(-0.5 * trueMin^2/k^2 - (to - trueMin)^2/(s*so^2))
+@
+
+Assuming that the original estimate was not zero ($\that_{o} \neq 0$), the Bayes
+factor~\eqref{eq:bf01} with $\alpha = 1$ (the replication Bayes factor) is
+information consistent, meaning that it will increasingly favor the correct
+hypothesis as the replication data accumulate. {\samuel{also true for priors on
+    $\alpha$? Probably yes, can maybe do a Laplace approximation to prove it}}
+In contrast, the Bayes factor~\eqref{eq:bfalpha} does not grow unboundedly but
+converges to a constant
+\begin{align*}
+  % \lim_{n_{r} \to \infty} \BF_{\text{dc}} (\that_{r}\given \theta \sim \Nor(0, \kappa^{2}))
+  \BF_{\text{dc}}^{*}
+  &= % \frac{\Nor(\that_{r};0, \kappa^{2})}{\Nor(\that_{r}; s  \that_{o},
+    % s  \sigma^{2}_{o})}
+    \sqrt{s  \sigma^{2}_{o}/\kappa^{2}} \, \exp\left[
+    -\frac{1}{2} \, \left\{\frac{\tilde{\theta}^{2}}{\kappa^{2}} -
+    \frac{(\tilde{\theta} - \that_{o})^{2}}{s  \sigma^{2}_{o}}\right\}\right].
+\end{align*}
+The amount of evidence one can find for either hypothesis thus depends on the
+original effect estimate $\that_{o}$, standard error $\sigma_{o}$, and the true
+effect size $\tilde{\theta}$. For instance, in the example from before we have
+an original effect estimate $\that_{o} = \Sexpr{round(to, 2)}$ and standard
+error $\sigma_{o} = \Sexpr{round(so, 2)}$. The bound is minimized for a true
+effect size of
+$ \tilde{\theta} = (\that_{o})/\{1 - (s  \sigma^{2}_{o})/\kappa^{2}\} = \Sexpr{round(trueMin, 2)}$,
+so the most extreme level we can obtain is
+$\BF_{\text{dc}}^{*} = \Sexpr{BayesRep::formatBF(bfBound)}$. Even in an
+infinitely precise replication study, we cannot find more evidence for
+$H_{\text{c}}$.
+
+% Under the (unrealistic) assumption
+% that the estimate is equal to the true effect size $\that_{o} = \tilde{\theta}$,
+% the bound
+
+
+\subsection{Design}
+
+Assume now that the replication study has not yet been conducted and we want to
+determine its sample size. In the case of the replication Bayes factor under
+normality, \citet{Pawel2020b} derived the probability of replication success in
+closed form under $H_{0}$ and $H_{1}$. Based on their result, standard Bayesian
+design analysis \citep{Weiss1997, DeSantis2004, Schoenbrodt2017} can be
+conducted to determine the appropriate replication sample size. For the
+generalized replication Bayes factor~\eqref{eq:bf01}, numerical integration or
+simulation is required to compute the probability of replication success as the
+marginal likelihood is not available in closed form under $H_{1}$.
+
+It is also possible to derive the probability of replication success
+analytically for the power parameter Bayes factor~\eqref{eq:bfalpha}. With some
+algebra, one can show that $\BF_{\text{dc}} \leq \gamma$ is equivalent to
+% \begin{align*}
+%   2\log\gamma - \log\left(\frac{\sigma^{2}_{r} + s  \sigma^{2}_{o}}{
+%   \sigma^{2}_{r} + \kappa^{2}}\right)
+%   &\geq \frac{(\that_{r} - s  \that_{o})^{2}}{
+%   \sigma^{2}_{r} + s  \sigma^{2}_{o}} - \frac{\that_{r}^{2}}{\sigma^{2}_{r} +
+%   \kappa^{2}} \\
+%   &= \frac{\kappa^{2} - s  \sigma^{2}_{o}}{(\sigma^{2}_{r} + \kappa^{2})
+%     (\sigma^{2}_{r} + s  \sigma^{2}_{o})} \left(\that_{r} -
+%     \frac{s \that_{o} \, (\sigma^{2}_{r} + \kappa^{2})}{\kappa^{2} -
+%     s  \sigma^{2}_{o}}\right)^{2}
+% \end{align*}
+% which is equivalent to
+\begin{align}
+  \left(\that_{r} -
+  \frac{s \that_{o} (\sigma^{2}_{r} + \kappa^{2})}{\kappa^{2} -
+  s  \sigma^{2}_{o}}\right)^{2}
+  \leq X =&
+    \frac{(\sigma^{2}_{r} + \kappa^{2})(\sigma^{2}_{r} +
+    s  \sigma^{2}_{o})}{\kappa^{2} - s  \sigma^{2}_{o}}
+    \left\{\log\gamma^{2}- \log\left(\frac{\sigma^{2}_{r} + s  \sigma^{2}_{o}}{
+            \sigma^{2}_{r} + \kappa^{2}}\right) - \frac{s^{2}  \that^{2}_{o}}{s  \sigma^{2}_{o} - \kappa^{2}}\right\}
+    \label{eq:RScond}
+\end{align}
+for $\kappa^{2} > s  \sigma^{2}_{o}$. Denote by $m_{i}$ and $v_{i}$ the
+mean and variance of $\that_{r}$ under hypothesis $i \in \{d, c\}$. The left
+hand side of~\eqref{eq:RScond} then follows scaled non-central chi-squared
+distribution under both hypotheses. The probability of replication success is
+hence given by
+\begin{align}
+  \Pr(\BF_{\text{dc}} \leq \gamma \given H_{i})
+  &= \Pr\left(\chi^{2}_{1,\lambda_{i}} \leq X/v_{i} \right)
+    \label{eq:PRS}
+\end{align}
+with non-centrality parameter
+\begin{align*}
+  \lambda_{i}
+  = \left(m_{i} - \frac{s \that_{o}  (\sigma^{2}_{r} + \kappa^{2})}{\kappa^{2}
+  - s  \sigma^{2}_{o}}\right)^{2} \big / v_{i}.
+\end{align*}
+
+To determine the replication sample size, we can now use~\eqref{eq:PRS} to
+compute the probability of replication success at a desired level $\gamma$ over
+a grid of replication standard errors $\sigma_{r}$, and under either hypothesis
+$H_{\text{d}}$ and $H_{\text{c}}$. The appropriate standard error is then chosen
+so that the probability for finding correct evidence is sufficiently high under
+the respective hypothesis, and sufficiently low under the wrong hypothesis.
+Subsequently, the standard error $\sigma_{r}$ needs to be translated into a
+sample size, \eg for standardized mean differences via the aforementioned
+approximation $n_{r} \approx 4/\sigma^{2}_{r}$.
+
+
+\begin{figure}[!htb]
+<< "design", fig.height = 4.5 >>=
+## probability of relpication success
+powerFun <- function(sr, to, so, k, level, mi, vi) {
+    s <- k^2/so^2 / (1 + k^2/so^2)
+    X <- (sr^2 + k^2) * (sr^2 + s * so^2) / (k^2 - s * so^2) *
+        (2 * log(level) - log((sr^2 + s * so^2) / (sr^2 + k^2)) -
+         s^2*to^2/(s*so^2 - k^2))
+    lambdai <- (mi - s * to * (sr^2 + k^2) / (k^2 - s * so^2))^2/vi
+    p <- stats::pchisq(q = X/vi, df = 1, ncp = lambdai, lower.tail = TRUE)
+    return(p)
+}
+
+## compute proability of replication success for a grid of replication
+## standard errors
+cSeq <- exp(seq(log(1/12), log(12), length.out = 1000))
+cbks <- c(1/10, 1/3, 1, 3, 10)
+
+level <- 1/10
+plotDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    to <- tr[i]
+    so <- sr[i]
+    srSeq <- so / sqrt(cSeq)
+    ## mean and variance under Hd and Hc
+    md <- 0
+    vd <- srSeq^2 + k^2
+    s <- k^2/so^2 / (1 + k^2/so^2)
+    mc <- s*to
+    vc <- srSeq^2 + s*so^2
+    ## power to achieve BF < level
+    p1Hd <- powerFun(sr = srSeq, to = to, so = so, k = k, level = level,
+                     mi = md, vi = vd)
+    p1Hc <- powerFun(sr = srSeq, to = to, so = so, k = k, level = level,
+                     mi = mc, vi = vc)
+    outDF1 <- rbind(data.frame(p = p1Hd, level = level, type = "italic(H['d'])",
+                               sr = srSeq, c = cSeq, to = to, so = so,
+                               direction = "<="),
+                    data.frame(p = p1Hc, level = level, type = "italic(H['c'])",
+                               sr = srSeq, c = cSeq, to = to, so = so,
+                               direction = "<="))
+    ## power to achieve BF > 1/level
+    p2Hd <- 1 - powerFun(sr = srSeq, to = to, so = so, k = k, level = 1/level,
+                         mi = md, vi = vd)
+    p2Hc <- 1 - powerFun(sr = srSeq, to = to, so = so, k = k, level = 1/level,
+                         mi = mc, vi = vc)
+    outDF2 <- rbind(data.frame(p = p2Hd, level = 1/level, type = "italic(H['d'])",
+                               sr = srSeq, c = cSeq, to = to, so = so,
+                               direction = ">="),
+                    data.frame(p = p2Hc, level = 1/level, type = "italic(H['c'])",
+                               sr = srSeq, c = cSeq, to = to, so = so,
+                               direction = ">="))
+    outDF <- rbind(outDF1, outDF2)
+    outDF$yFacetLab <- paste0("'Pr(BF'['dc']", outDF$direction,
+                              BayesRep::formatBF(outDF$level),
+                              "~ '|' ~ italic(H['i']) *", "')'")
+    outDF$xFacetLab <- paste0("{hat(theta)[italic(o)] ==",
+                              round(outDF$to, 2),
+                              "}*', '*sigma[italic(o)] == ",
+                              round(outDF$so, 2))
+    return(outDF)
+}))
+## do.call("rbind", lapply(X = seq(1, length(to)), FUN = function(i) {
+##     to <- to[i]
+##     so <- to[i]
+##     ## mean and variance under Hd and Hc
+##     md <- 0
+##     vd <- srSeq^2 + k^2
+##     s <- k^2/so^2 / (1 + k^2/so^2)
+##     mc <- s*to
+##     vc <- srSeq^2 + s*so^2
+##     ## power to achieve BF < level
+##     p1Hd <- powerFun(sr = srSeq, to = to, so = so, k = k, level = level,
+##                      mi = md, vi = vd)
+##     p1Hc <- powerFun(sr = srSeq, to = to, so = so, k = k, level = level,
+##                      mi = mc, vi = vc)
+##     outDF1 <- rbind(data.frame(p = p1Hd, level = level, type = "italic(H['d'])",
+##                                sr = srSeq, c = cSeq, to = to, so = so,
+##                                direction = "<="),
+##                     data.frame(p = p1Hc, level = level, type = "italic(H['c'])",
+##                                sr = srSeq, c = cSeq, to = to, so = so,
+##                                direction = "<="))
+##     ## power to achieve BF > 1/level
+##     p2Hd <- 1 - powerFun(sr = srSeq, to = to, so = so, k = k, level = 1/level,
+##                          mi = md, vi = vd)
+##     p2Hc <- 1 - powerFun(sr = srSeq, to = to, so = so, k = k, level = 1/level,
+##                          mi = mc, vi = vc)
+##     outDF2 <- rbind(data.frame(p = p2Hd, level = 1/level, type = "italic(H['d'])",
+##                                sr = srSeq, c = cSeq, to = to, so = so,
+##                                direction = ">="),
+##                     data.frame(p = p2Hc, level = 1/level, type = "italic(H['c'])",
+##                                sr = srSeq, c = cSeq, to = to, so = so,
+##                                direction = ">="))
+##     outDF <- rbind(outDF1, outDF2)
+##     outDF$yFacetLab <- paste0("'Pr(BF'['dc']", outDF$direction,
+##                               BayesRep::formatBF(outDF$level),
+##                               "~ '|' ~ italic(H['i']) *", "')'")
+##     outDF$xFacetLab <- paste0("{hat(theta)[italic(o)] ==",
+##                               round(outDF$to, 2),
+##                               "}*', '*sigma[italic(o)] == ",
+##                               round(outDF$so, 2))
+##     return(outDF)
+## }))
+
+pow <- 0.8
+ssDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    to <- tr[i]
+    so <- sr[i]
+    ## standard error to achieve P(BF < level | Hc, sr) = 0.8
+    rootFunHc <- function(c) {
+        sr <- so/sqrt(c)
+        mc <- s*to
+        vc <- sr^2 + s*so^2
+        powerFun(sr = sr, to = to, so = so, k = k, level = level,
+                 mi = mc, vi = vc) - pow
+    }
+    resHd <- try(uniroot(f = rootFunHc, interval = c(1/100, 100))$root)
+    if (class(resHd) == "try-error") {
+        srHc <- NaN
+    } else {
+        srHc <- so/sqrt(resHd)
+    }
+    ## standard error to achieve P(BF > 1/level | Hd, sr) = 0.8
+    rootFunHd <- function(c) {
+        sr <- so/sqrt(c)
+        md <- 0
+        vd <- sr^2 + k^2
+        (1 - powerFun(sr = sr, to = to, so = so, k = k, level = 1/level,
+                      mi = md, vi = vd)) - pow
+    }
+    resHd <- try(uniroot(f = rootFunHd, interval = c(1/100, 100))$root)
+    if (class(resHd) == "try-error") {
+        srHd <- NaN
+    } else {
+        srHd <- so/sqrt(resHd)
+    }
+    outDF <- rbind(data.frame(level = 1/level, type = "italic(H['d'])",
+                              sr = srHd, c = so^2/srHd^2, to = to, so = so,
+                              direction = ">=", power = pow),
+                   data.frame(level = level, type = "italic(H['c'])",
+                              sr = srHc, c = so^2/srHc^2, to = to, so = so,
+                              direction = "<=", power = pow))
+    outDF$yFacetLab <- paste0("'Pr(BF'['dc']", outDF$direction,
+                              BayesRep::formatBF(outDF$level),
+                              "~ '|' ~ italic(H['i']) *", "')'")
+    outDF$xFacetLab <- paste0("{hat(theta)[italic(o)] ==",
+                              round(outDF$to, 2),
+                              "}*', '*sigma[italic(o)] == ",
+                              round(outDF$so, 2))
+    return(outDF)
+}))
+
+powbks <- seq(0, 1, 0.2)
+ggplot(data = plotDF, aes(x = c, y = p, color = type)) +
+    facet_grid(yFacetLab ~ xFacetLab, labeller = label_parsed,
+               switch = "y") +
+    geom_hline(yintercept = pow, lty = 2, alpha = 0.1) +
+    geom_line(alpha = 0.9) +
+    geom_point(data = ssDF, aes(x = c, y = power), size = 0.8,
+               show.legend = FALSE) +
+    geom_segment(data = ssDF, aes(x = c, xend = c, y = power, yend = 0),
+                 alpha = 0.3, arrow = arrow(length = unit(0.15, "cm")),
+                 show.legend = FALSE, size = 0.5) +
+    labs(x = bquote("Relative variance" ~ sigma[italic(o)]^2/sigma[italic(r)]^2  %~~%
+                        italic(n[r]) / italic(n[o])),
+         y = NULL, color = NULL) +
+    scale_y_continuous(breaks = powbks, labels = scales::percent,
+                       limits = c(0, 1)) +
+    scale_color_brewer(palette = "Dark2", labels = scales::parse_format()) +
+    scale_x_log10(breaks = cbks, labels = BayesRep::formatBF(cbks)) +
+    theme_bw() +
+    theme(panel.grid.minor = element_blank(),
+          strip.background.y = element_blank(), strip.placement = "outside")
+
+## check that quadratic forms correctly combined
+## (tr - to*s)^2/(sr^2 + s*so^2) - tr^2/(sr^2 + k^2)
+## (k^2 - s*so^2)/((sr^2 + k^2)*(sr^2 + s*so^2))*
+##     (tr - to*s*(sr^2 + k^2)/(k^2 - s*so^2))^2 + to^2*s^2/(s*so^2 - k^2)
+@
+\caption{Probability of replication success as a function of relative variance
+  for the three replications of experiment ``\Sexpr{ex}'' regarded as original
+  study. Relative sample size that correspond to a probability of
+  \Sexpr{round(100*pow, 2)}\% under the respective hypothesis are indicated by
+  arrows.}
+\label{fig:ssd}
+\end{figure}
+
+\subsection{Example ``\Sexpr{ex}'' (continued)}
+
+Figure~\ref{fig:ssd} illustrates Bayesian design analysis based on the power
+parameter Bayes factor for the three replication studies from the experiment
+``\Sexpr{ex}'' which are now each regarded as original studies. Shown is the
+probability of replication success as a function of the relative sample size.
+The curves look more or less similar for all three studies. We see from the
+lower panels that the probability for finding strong evidence for $H_{\text{c}}$
+is not much affected by the sample size of the replication study staying at
+almost zero under $H_{\text{c}}$, while under $H_{\text{d}}$ it increases from
+about 75\% to about 90\%. In contrast, the top panels show that the probability
+for finding strong evidence for $H_{c}$ rapidly increases under $H_{\text{c}}$
+and seems to level off at an asymptote. Under $H_{\text{d}}$ the probability
+stays below 10\% across the whole range.
+
+The plots also display the required replication sample size to obtain strong
+evidence with probability of $\Sexpr{round(100*pow, 2)}\%$ under the correct
+hypothesis. We see that original studies with smaller standard errors require
+smaller replication sample sizes to achieve the same probability of replication
+success. Under $H_{\text{c}}$ the required sample sizes are larger than under
+$H_{\text{d}}$. However, while the probability of misleading evidence under
+$H_{\text{c}}$ seems to be well controlled under the determined sample size,
+under $H_{\text{d}}$ it stays roughly 5\% for all three studies, and even for
+very large replication sample sizes.
+
+For all three studies choosing the sample size based on finding strong evidence
+for $H_{\text{c}}$ assuming $H_{\text{c}}$ is true also guarantees appropriate
+error probabilities for finding strong evidence for $H_{\text{d}}$. At the same
+time, it seems that the probability for finding misleading evidence for
+$H_{\text{c}}$ cannot be reduced below around 5\% which might undesirably high
+for certain applications.
+
+\section{Discussion}
+
+We showed how the power prior framework can be used for design and analysis of
+replication studies. Power priors help both in estimation and testing of effect
+sizes via a dynamic borrowing of information from the original study. At the
+same time, they allow to make inferences about study compatibility through the
+power parameter, which links the original to the replication study.
+
+It is well known that for normal data there is an exact mapping of posterior
+inferences between power prior and hierarchical models when the power parameter
+$\alpha$ and heterogeneity variance $\tau^{2}$ are fixed \citep{Chen2006}. We
+established that a similar mapping exists also in the case of random $\alpha$
+and $\tau^{2}$. This results is useful in Just as it is difficult to learn about
+a heterogeneity variance from two studies, it seems difficult to do learn about
+the power parameter. This results helps explaining why even with two highly
+precise studies we were unable to make conclusive posterior inferences about
+$\alpha$.
+
+% variances from two studies, it seems difficult
+
+% It seems difficult to learn much about the power parameter. Even
+
+% Just as it is difficult to do inferences about the effect size heterogeneity
+% variances from two studies, it seems difficult
+
+
+% Failed replication efforts (in terms of null hypothesis testing) have led many
+% to argue that researchers should shift their focus to effect size comparison.
+% Our results show that in order to obtain strong evidence for effect size
+% compatibility, large sample sizes are
+% required. % , often more difficult than to find evidence
+% % against a null hypothesis (especially when data are noisy and when the samples
+% % size is small).
+
+% \section*{Software and data}
+% The data were taken from \dots. All analyses were conducted in the R programming
+% language version \Sexpr{paste(version$major, version$minor, sep = ".")}
+% \citep{R}. The code to reproduce this manuscript is available at \dots All
+% methods are implemented in the R package \texttt{X} which is available at
+% \dots
+
+% \section*{Acknowledgments}
+% We thank
+
+
+% Appendix
+% ------------------------------------------------------------------------------
+% \begin{appendices}
+
+
+% \end{appendices}
+
+
+% Bibliography
+% % ------------------------------------------------------------------------------
+\bibliographystyle{apalikedoiurl}
+\bibliography{bibliography}
+
+
+% \end{multicols}
+
+\end{document}
