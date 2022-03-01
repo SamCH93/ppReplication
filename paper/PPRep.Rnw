@@ -29,19 +29,15 @@
 
 %% title, authors, affiliations, mail
 %% ----------------------------------------------------------------------------
-\newcommand\longtitle{Power priors for design and analysis of replication studies }
- \newcommand\shorttitle{\longtitle} % if longtitle too long, change here
+\newcommand\longtitle{Power priors for design and analysis of replication studies}
+\newcommand\shorttitle{Power priors for replication studies} % if longtitle too long, change here
 \newcommand\subtitle{}
-% \newcommand\longauthors{Samuel Pawel\textsuperscript{*} and Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
-% \newcommand\shortauthors{S. Pawel, E.-J. Wagenmakers} % if longauthors too long, change here
-% \newcommand\affiliation{
-%   * Department of Biostatistics, University of Zurich \\
-%   $\dagger$ Department of Psychological Methods, University of Amsterdam
-% }
-\newcommand\longauthors{Samuel Pawel}
-\newcommand\shortauthors{S. Pawel} % if longauthors too long, change here
+\newcommand\longauthors{Samuel Pawel\textsuperscript{*}, Frederik Aust\textsuperscript{$\dagger$}, Eric-Jan Wagenmakers\textsuperscript{$\dagger$},
+Leonhard Held\textsuperscript{*}}
+\newcommand\shortauthors{S. Pawel, F. Aust, E.-J. Wagenmakers, L. Held} % if longauthors too long, change here
 \newcommand\affiliation{
-  Department of Biostatistics, University of Zurich
+  * Department of Biostatistics, University of Zurich \\
+  $\dagger$ Department of Psychological Methods, University of Amsterdam
 }
 \newcommand\mail{samuel.pawel@uzh.ch}
 \title{
@@ -70,7 +66,7 @@
   linkcolor=RoyalPurple,
   anchorcolor=black,
   citecolor=MidnightBlue,
-  urlcolor=BrickRed,
+  urlcolor=black,
 }
 
 %% Headers and footers
@@ -87,6 +83,11 @@
 \begin{document}
 \maketitle
 
+%% Disclaimer that a preprint
+\begin{center}
+  {\color{red}This is a preprint which has not yet been peer reviewed.}
+\end{center}
+
 % knitr options
 % -----------------------------------------------------------------------------
 << "main-setup", include = FALSE >>=
@@ -98,6 +99,37 @@ opts_chunk$set(fig.height = 4,
                cache = FALSE,
                eval = TRUE)
 @
+
+%% Abstract
+%% -----------------------------------------------------------------------------
+\begin{center}
+  \begin{minipage}{13cm} {\small
+      \rule{\textwidth}{0.5pt} \\
+      {\centering \textbf{Abstract} \\
+        Power priors are a class of prior distributions that allow to
+        incorporate historical data in Bayesian analyses. One domain where
+        historical data are available is the analysis of replication studies.
+        Despite the growing interest in replication studies, no one has yet
+        investigated a power prior modeling approach for the analysis of
+        replication studies. Here, we explore this idea for both parameter
+        estimation and hypothesis testing. We show how power priors help both in
+        estimation and testing of effect sizes via a dynamic borrowing of
+        information from the original study. At the same time, they allow to
+        make inferences about study compatibility through the power parameter,
+        which links the original to the replication study. It is well known that
+        for normal data there is an exact mapping of posterior inferences
+        between power prior and hierarchical models when the power parameter and
+        heterogeneity variance are fixed. We establish that a similar mapping
+        exists also in the case when these parameters are assigned a prior
+        distribution. Our results help to better understand prior distributions
+        on heterogenetiy variances, and also how prior models can alternatively
+        estimated through a hierarchical framework.
+      } \\
+      \rule{\textwidth}{0.5pt} \emph{Key words}: Power prior, hierarchical
+      models, replication studies, historical data, Bayesian hypothesis testing,
+      Bayesian parameter estimation}
+\end{minipage}
+\end{center}
 
 
 \section{Introduction}
@@ -119,10 +151,24 @@ to answer this question \citep[among others]{Bayarri2002, Verhagen2014,
   Johnson2016, Etz2016, vanAert2017, Ly2018, Hedges2019, Mathur2020, Held2020,
   Pawel2020, Pawel2020b, Held2021}. Constructing a power prior from the original
 data and using it in the analysis of the replication study seems a natural thing
-to do. However, no one has yet investigated such an approach. In this paper we
-attempt to explore this and related ideas. In particular, we will \dots
+to do. However, no one has yet investigated such an approach.
+
+In this paper we show how power priors can be constructed from data of an
+original study under a meta-analytic framework (Section~\ref{sec:power-prior}).
+We then show, how the power prior can then be used for for both parameter
+estimation (Section~\ref{sec:parameter-estimation}) and hypothesis testing
+(Section~\ref{sec:hypothesis-testing}). Our results indicate that power priors
+help both in estimation and testing of effect sizes via a dynamic borrowing of
+information from the original study. At the same time, the approach enables
+inferences about study compatibility through the power parameter, which links
+the original to the replication study. It is well known that for normal data
+there is an exact mapping of posterior inferences between power prior and
+hierarchical models when the power parameter and heterogeneity variance are
+fixed \citep{Chen2006}. We establish that a similar mapping exists also in the
+case when these parameters are random and assigned a prior distribution \dots
 
 \section{The power prior based on an original study}
+\label{sec:power-prior}
 Let $\theta$ denote an unknown effect size and $\that_{i}$ an estimate thereof
 obtained from study $i \in \{o, r\}$ where the subscript indicates ``original''
 or ``replication'', respectively. Assume that the likelihood of the effect
@@ -145,18 +191,18 @@ the original study. % Assume an initial prior distribution for the effect size
     %   \end{align*}
 Under an (improper) flat initial prior $f(\theta) \propto 1$, normalization of
 the likelihood of the original data raised to a (fixed) power parameter $\alpha$
-leads to the power prior
+leads to the normalized power prior
 \begin{align}
   \theta \given \that_{o}, \sigma_{o}, \alpha
-  \sim \Nor\left(\that_{o}, \frac{\sigma^{2}_{o}}{\alpha}\right).
+  \sim \Nor\left(\that_{o}, \frac{\sigma^{2}_{o}}{\alpha}\right)
   \label{eq:pp}
 \end{align}
-There are different ways to specify $\alpha$. The simplest approach fixes
-$\alpha$ to an a priori reasonable value, possibly informed from external
-knowledge about the similarity of the two studies. Another option is to use the
-empirical Bayes estimate \citep{Gravestock2017}, \ie, the value of $\alpha$ that
-maximizes the likelihood of the replication data marginalized over the power
-prior
+as proposed by \citet{Neuenschwander2009}. There are different ways to specify
+$\alpha$. The simplest approach fixes $\alpha$ to an a priori reasonable value,
+possibly informed from external knowledge about the similarity of the two
+studies. Another option is to use the empirical Bayes estimate
+\citep{Gravestock2017}, \ie, the value of $\alpha$ that maximizes the likelihood
+of the replication data marginalized over the power prior
 \begin{align*}
   \hat{\alpha}_{\text{EB}}
   = \max\left[0, \min\left\{1, \frac{\sigma^{2}_{o}}{(\that_{o} - \that_{r})^{2}
@@ -187,88 +233,16 @@ parameter in the normal model.
 % the data from both studies.
 
 \section{Parameter estimation}
+\label{sec:parameter-estimation}
 << "posterior-distribution" >>=
-## check normalizing constant of the prior
-## alpha <- 0.6
-## to <- 2.1
-## so <- 0.8
-## integrate(f = function(t) dnorm(x = to, mean = t, sd = so)^alpha,
-##           lower = -Inf, upper = Inf)
-## sqrt(2*pi*so^2/alpha)/(2*pi*so^2)^(alpha/2)
-## (2*pi)^((1 - alpha)/2) * (so^2)^((1 - alpha)/2) / sqrt(alpha)
-
-## function to compute normalizing constant
-normConst <- function(tr, sr, to, so, x, y) {
-    intFun <- function(alpha) {
-        stats::dnorm(x = tr, mean = to, sd = sqrt(sr^2 + so^2/alpha)) *
-            stats::dbeta(x = alpha, shape1 = x, shape2 = y)
-    }
-    res <- try(stats::integrate(f = intFun, lower = 0, upper = 1)$value)
-    if (class(res) == "try-error") const <- NaN
-    else const <- res
-    return(res)
-}
-
-## function to compute posterior density
-posteriorDens <- function(theta, alpha, tr, sr, to, so, x, y, normConst = NULL) {
-    ## allow to give normalizing constant so that not recomputed
-    ## for for each parameter pair
-    if (is.null(normConst)) {
-        normConst <- normConst(tr = tr, sr = sr, to = to, so = so, x = x, y = y)
-    }
-
-    ## compute posterior density
-    dens <- stats::dnorm(x = tr, mean = theta, sd = sr) *
-        stats::dnorm(x = theta, mean = to, sd = so/sqrt(alpha)) *
-        stats::dbeta(x = alpha, shape1 = x, shape2 = y) /
-        normConst
-    return(dens)
-}
-
-## function to compute marginal posterior density of power parameter alpha
-posteriorDensAlpha <- function(alpha, tr, sr, to, so, x, y, normConst = NULL) {
-    ## allow to give normalizing constant so that not recomputed
-    ## for for each parameter pair
-    if (is.null(normConst)) {
-        normConst <- normConst(tr = tr, sr = sr, to = to, so = so, x = x, y = y)
-    }
-
-    ## compute marginal posterior density
-    dens <- stats::dnorm(x = tr, mean = to, sd = sqrt(sr^2 + so^2/alpha)) *
-        stats::dbeta(x = alpha, shape1 = x, shape2 = y) /
-        normConst
-    return(dens)
-}
-
-## function to compute marginal posterior density of effect size theta
-posteriorDensTheta <- function(theta, tr, sr, to, so, x, y, normConst = NULL) {
-    ## allow to give normalizing constant so that not recomputed
-    ## for for each parameter pair
-    if (is.null(normConst)) {
-        normConst <- normConst(tr = tr, sr = sr, to = to, so = so, x = x, y = y)
-    }
-
-    ## HACK vectorize function in theta
-    dens <- vapply(X = theta, FUN = function(thetai) {
-        ## compute marginal posterior density
-        intFun <- function(alpha) {
-            stats::dnorm(x = thetai, mean = to, sd = so/sqrt(alpha)) *
-                stats::dbeta(x = alpha, shape1 = x, shape2 = y)
-        }
-        res <- try(stats::integrate(f = intFun, lower = 0, upper = 1)$value)
-        if (class(res) == "try-error") int <- NaN
-        else int <- res
-        densi <- stats::dnorm(x = tr, mean = thetai, sd = sr) * int /
-            normConst
-        return(densi)
-    }, FUN.VALUE = 1)
-    return(dens)
-}
+## functions are now in pkg
+library(ppRep)
 
 ## ## check that posterior integrates to one
-## .intFunAlpha <- function(alpha, tr, sr, to, so, x, y, normConst) {
+## .intFunAlpha <- function(alpha, tr, sr, to, so, x, y) {
 ##     intFunTheta <- function(theta) {
-##         posteriorDens(theta, alpha, tr, sr, to, so, x, y, normConst)
+##         postPP(theta = theta, alpha = alpha, tr = tr, sr = sr, to = to,
+##                so = so, x = x, y = y)
 ##     }
 ##     integrate(f = intFunTheta, lower = -Inf, upper = Inf)$value
 ## }
@@ -279,9 +253,8 @@ posteriorDensTheta <- function(theta, tr, sr, to, so, x, y, normConst = NULL) {
 ## so <- 1
 ## x <- 1
 ## y <- 1
-## nC <- normConst(tr = tr, sr = sr, to = to, so = so, x = x, y = y)
-## integrate(f = intFunAlpha, lower = 0, upper = 1,
-##           tr = tr, sr = sr, to = to, so = so, x = x, y = y, normConst = nC)
+## integrate(f = intFunAlpha, lower = 0, upper = 1, tr = tr, sr = sr, to = to,
+##           so = so, x = x, y = y)
 @
 
 % asdsad
@@ -340,9 +313,11 @@ data(protzko2020, package = "ReplicationSuccess")
 ex <- "Labels"
 dat <- subset(protzko2020, experiment == ex)
 to <- dat$smd[dat$type == "original"]
+no <- dat$n[dat$type == "original"]
 tr <- dat$smd[dat$type == "external-replication"]
 so <- dat$se[dat$type == "original"]
 sr <- dat$se[dat$type == "external-replication"]
+nr <- dat$n[dat$type == "external-replication"]
 
 ## uniform prior for alpha
 x <- 1
@@ -358,8 +333,11 @@ interpreted as disagreeing with those attributes when a negative label is used
 and agreeing with those attributes when a positive label is used.'' This finding
 came with a standardized mean difference effect estimate
 $\that_{o} = \Sexpr{round(to, 2)}$ and standard error
-$\sigma_{o} = \Sexpr{round(so, 2)}$. Subsequently, four replication studies were
-conducted, three of them by a different lab than the original one.
+$\sigma_{o} = \Sexpr{round(so, 2)}$ obtained from $\Sexpr{round(no, 1)}$
+participants. Subsequently, four replication studies were conducted, three of
+them by a different lab than the original one, and all employing large sample
+sizes.
+
 
 \begin{figure}[!htb]
 << "fig-example-posterior", fig.height = 6 >>=
@@ -371,13 +349,9 @@ thetaseq <- seq(0, 0.6, length.out = ntheta)
 parGrid <- expand.grid(alpha = alphaseq, theta = thetaseq)
 
 ## compute joint posterior
-jointplotDF <- do.call("rbind", lapply(X = seq(1, length(tr)),
-                                       FUN = function(i) {
-    ## precompute the normalizing constant because the same for all pairs of parameters
-    nC <- normConst(tr = tr[i], sr = sr[i], to = to, so = so, x = x, y = y)
-    ## compute posterior density
-    pDens <- posteriorDens(theta = parGrid$theta, alpha = parGrid$alpha, tr = tr[i],
-                           sr = sr[i], to = to, so = so, x = x, y = y, normConst = nC)
+jointplotDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    pDens <- postPP(theta = parGrid$theta, alpha = parGrid$alpha, tr = tr[i],
+                    sr = sr[i], to = to, so = so, x = x, y = y)
     parGrid$density <- pDens
     parGrid$tr <- tr[i]
     parGrid$sr <- sr[i]
@@ -400,34 +374,18 @@ plotTop <- ggplot(data = jointplotDF, aes(x = theta, y = alpha, fill = density))
     theme_minimal() +
     theme(panel.grid.minor = element_blank())
 
-## ## with base R
-## pDensMat <- matrix(data = pDens, ncol = nalpha, byrow = TRUE)
-## filled.contour(x = thetaseq, y = alphaseq, z = pDensMat,
-##                xlab = bquote("Effect size" ~ theta),
-##                ylab = bquote("Power parameter" ~ alpha),
-##                ## key.title = title(main = "Density"),
-##                ## plot.title = title(main = "Posterior distribution"),
-##                nlevels = 15,
-##                color.palette = function(n) hcl.colors(n = n, palette = "viridis"))
-
 
 ## compute marginal posteriors
 alphaplotDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
-    ## precompute the normalizing constant because the same for all pairs of parameters
-    nC <- normConst(tr = tr[i], sr = sr[i], to = to, so = so, x = x, y = y)
-    ## compute marginal posterior density
-    pDens <- posteriorDensAlpha(alpha = alphaseq, tr = tr[i], sr = sr[i], to = to,
-                                so = so, x = x, y = y, normConst = nC)
+    pDens <- postPPalpha(alpha = alphaseq, tr = tr[i], sr = sr[i], to = to,
+                         so = so, x = x, y = y)
     out <- data.frame(x = alphaseq, density = pDens,
                       parameter = "'Power parameter' ~ alpha", tr = tr[i], sr = sr[i])
     return(out)
 }))
 thetaplotDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
-    ## precompute the normalizing constant because the same for all pairs of parameters
-    nC <- normConst(tr = tr[i], sr = sr[i], to = to, so = so, x = x, y = y)
-    ## compute marginal posterior density
-    pDens <- posteriorDensTheta(theta = thetaseq, tr = tr[i], sr = sr[i], to = to,
-                                so = so, x = x, y = y, normConst = nC)
+    pDens <- postPPtheta(theta = thetaseq, tr = tr[i], sr = sr[i], to = to,
+                         so = so, x = x, y = y)
     out <- data.frame(x = thetaseq, density = pDens,
                       parameter = "'Effect size' ~ theta", tr = tr[i], sr = sr[i])
     return(out)
@@ -490,8 +448,8 @@ compatibility between the two studies, influences how much information is
 borrowed from the original study. For instance, the marginal posterior density
 based on the most compatible replication
 ($\that_{r} = \Sexpr{round(tr[3], 2)}$), is the most concentrated among the
-three replications, despite that this estimate was the least. In contrast, the
-marginal posterior of the most conflicting estimate
+three replications, despite that this estimate was the least precise. In
+contrast, the marginal posterior of the most conflicting estimate
 ($\that_{r} = \Sexpr{round(tr[2], 2)}$) borrows fewer information and is the
 least peaked posterior, despite being the most precise estimate among the three.
 
@@ -580,6 +538,7 @@ models is thus $\alpha \approx 1 - I^{2}$.
 
 \begin{figure}[!htb]
 << "I2plot", fig.height = 3 >>=
+## show relationship between I^2 and alpha
 I2seq <- seq(from = 0, to = 1, length.out = 500)
 alphaseq <- (1 - I2seq)/(1 + I2seq)
 plotDF <- data.frame(I2 = I2seq, alpha = alphaseq, tau2 = so^2/2*(1/alphaseq - 1))
@@ -675,13 +634,14 @@ match when we assign a
 prior on $\tau^{2}$.
 
 \begin{figure}[!htb]
-<< "check-cov", fig.height = 5 >>=
-## show some corresponding priors
+<< "corresponding-priors", fig.height = 5 >>=
+## corresponding heterogeneity variance priors for alpha ~ Beta(a, b)
 ftau2 <- function(tau2, a, b, so) {
     dbeta(x = so^2/(2*tau2 + so^2), shape1 = a, shape2 = b) *
         2*so^2/(2*tau2 + so^2)^2
 }
 
+## compute priors for a grid of Beta priors
 paramsGrid <- data.frame(a = c(1, 2, 1),
                          b = c(1, 1, 2))
 aseq <- seq(0, 1, length.out = 500)
@@ -704,6 +664,7 @@ tau2DF <- do.call("rbind", lapply(X = seq(1, nrow(paramsGrid)), FUN = function(i
 }))
 plotDF <- rbind(alphaDF, tau2DF)
 
+## plot beta priors for alpha and corresponding priors for tau^2
 plotalpha <- ggplot(data = alphaDF, aes(x = x, y = density)) +
     facet_grid(ylab ~ ., labeller = label_parsed, scales = "free",
                switch = "x") +
@@ -712,7 +673,6 @@ plotalpha <- ggplot(data = alphaDF, aes(x = x, y = density)) +
     expand_limits(y = c(0, 3)) +
     theme_bw() +
     theme(panel.grid.minor = element_blank(),
-          ## strip.text.y = element_blank(),
           strip.background.x = element_blank(), strip.placement = "outside")
 
 plottau <- ggplot(data = tau2DF, aes(x = x, y = density)) +
@@ -727,21 +687,6 @@ plottau <- ggplot(data = tau2DF, aes(x = x, y = density)) +
           strip.background.x = element_blank(), strip.placement = "outside")
 
 ggpubr::ggarrange(plottau, plotalpha, ncol = 2, align = "h")
-
-## ggplot(data = plotDF,
-##        aes(x = x, y = density)) +
-##     facet_grid(ylab ~ xlab, labeller = label_parsed, scales = "free",
-##                switch = "x") +
-##     geom_line() +
-##     labs(x = NULL, y = "Density") +
-##     theme_bw() +
-##     theme(strip.background.x = element_blank(), strip.placement = "outside")
-
-
-
-## integrate(f = ftau2, lower = 0, upper = Inf, a = 2, b = 5, so = 0.1)
-## t2seq <- seq(0, 1, length.out = 1000)
-## plot(t2seq, ftau2(tau2 = t2seq, a = 1, b = 1, so = 0.5), type = "l")
 
 ## reestimate marginal posteriors under hierarchical model
 normConstHierarch <- function(to, tr, so, sr, x, y) {
@@ -805,6 +750,7 @@ relative to $\sigma^{2}$, while the $\alpha \sim \Be(2, 1)$ prior gives no
 mass to small $\tau^{2}$ and has zero density at $\tau^{2} = 0$.
 
 \section{Hypothesis testing}
+\label{sec:hypothesis-testing}
 Apart from estimation of $\theta$ and $\alpha$, one may also want to test
 hypotheses. The standard Bayesian approach is to compute the Bayes factor
 contrasting the likelihood of the data under two competing hypothesis
@@ -869,9 +815,9 @@ Table~\ref{tab:hypothesis} displays the results of the proposed hypothesis tests
 applied to the three replications of the experiment ``\Sexpr{ex}''. We see from
 the Bayes factors contrasting $H_{0}$ to $H_{1}$ that the data indicate absence
 of evidence for either hypothesis in the first replication, but decisive
-evidence for $H_{1}$ in the second and third replication. In all three cases the
-Bayes factors are very close to the standard replication Bayes factors obtained
-from setting $\alpha = 1$.
+evidence for $H_{1}$ in the second and third replication. In all three cases,
+the Bayes factors are very close to the standard replication Bayes factors
+obtained from setting $\alpha = 1$.
 \begin{table}[!htb]
   \centering
   \caption{Hypothesis testing for replications of experiment ``\Sexpr{ex}'' with
@@ -888,21 +834,10 @@ from setting $\alpha = 1$.
 ## compute BFs for effect sizes and power parameter
 k <- sqrt(2)
 bfDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
-    ## compute marginal density under H1
-    fH1 <- normConst(tr = tr[i], sr = sr[i], to = to, so = so, x = 1, y = 1)
-    ## compute marginal density under H0
-    fH0 <- dnorm(x = tr[i], mean = 0, sd = sr[i])
-    ## compute bf for effect size
-    bf01 <- fH0/fH1
-    ## compute also replication bf
-    bfr <- fH0/dnorm(x = tr[i], mean = to, sd = sqrt(sr[i]^2 + so^2))
-    ## compute power parameter BF based on unit-information prior
-    g <- k^2/so^2
-    s <- g/(1 + g)
-    fHd <- dnorm(x = tr[i], mean = 0, sqrt(sr[i]^2 + k^2))
-    fHc <- dnorm(x = tr[i], mean = s*to, sqrt(sr[i]^2 + s*so^2))
-    bfdc <- fHd/fHc
-    ## put all in DF
+    ## compute suite of BFs for power prior models
+    bf01 <- bfPPtheta(tr = tr[i], sr = sr[i], to = to, so = so, x = 1, y = 1)
+    bfr <- bfPPtheta(tr = tr[i], sr = sr[i], to = to, so = so, alpha = 1)
+    bfdc <- bfPPalpha(tr = tr[i], sr = sr[i], to = to, so = so, uv = k^2)
     out <- data.frame(tr = tr[i], sr = sr[i], bf = bf01, bfr = bfr,
                       bfdc = bfdc)
     return(out)
@@ -916,7 +851,8 @@ dfTab <- bfDF %>%
            bfr = BayesRep::formatBF(bfr),
            bfdc = BayesRep::formatBF(bfdc),
            tr = round(tr, 2),
-           sr = round(sr, 2))
+           sr = round(sr, 2)) %>%
+    arrange(tr)
 xtab <- xtable(dfTab)
 colnames(xtab) <- c("$\\hat{\\theta}_r$",
                     "$\\sigma_r$",
@@ -961,6 +897,7 @@ converge in probability to the true effect size, and the standard error will go
 to zero.
 
 << "bf-bound" >>=
+## compute bound on the Bayes factor
 k <- sqrt(2)
 g <- k^2/so^2
 s <- g/(1 + g)
@@ -1286,38 +1223,24 @@ $H_{\text{c}}$ cannot be reduced below around 5\% which might undesirably high
 for certain applications.
 
 \section{Discussion}
-
 We showed how the power prior framework can be used for design and analysis of
-replication studies. Power priors help both in estimation and testing of effect
-sizes via a dynamic borrowing of information from the original study. At the
-same time, they allow to make inferences about study compatibility through the
-power parameter, which links the original to the replication study.
-
-It is well known that for normal data there is an exact mapping of posterior
-inferences between power prior and hierarchical models when the power parameter
-$\alpha$ and heterogeneity variance $\tau^{2}$ are fixed \citep{Chen2006}. We
-established that a similar mapping exists also in the case of random $\alpha$
-and $\tau^{2}$. This results is useful in Just as it is difficult to learn about
-a heterogeneity variance from two studies, it seems difficult to do learn about
-the power parameter. This results helps explaining why even with two highly
-precise studies we were unable to make conclusive posterior inferences about
-$\alpha$.
-
-% variances from two studies, it seems difficult
-
-% It seems difficult to learn much about the power parameter. Even
-
-% Just as it is difficult to do inferences about the effect size heterogeneity
-% variances from two studies, it seems difficult
-
-
-% Failed replication efforts (in terms of null hypothesis testing) have led many
-% to argue that researchers should shift their focus to effect size comparison.
-% Our results show that in order to obtain strong evidence for effect size
-% compatibility, large sample sizes are
-% required. % , often more difficult than to find evidence
-% % against a null hypothesis (especially when data are noisy and when the samples
-% % size is small).
+replication studies. The approach supplies analysts with a suite of methods for
+assessing effect sizes and study compatibility. We also show how the approach is
+connected to hierarchical modeling, and gave the conditions under which
+posterior distributions and hypothesis tests can be mapped from normal power
+prior models to the normal-normal hierarchical models. This connection helps
+explaining why even with two highly precise studies we were unable to make
+conclusive posterior inferences about the power parameter. Just as it is
+difficult to learn about a heterogeneity variance from two studies, it seems
+difficult to do learn about the power parameter from two studies alone. Failed
+replication efforts (in terms of null hypothesis testing) have led many to argue
+that researchers should shift their focus to effect size comparison. Our results
+show that in order to obtain conclusive evidence for effect size compatibility,
+extremely price estimates are required, which likely is more resource intensive
+than obtaining conclusive evidence for testing a null hypothesis.
+%     , often more difficult than to find evidence
+% against a null hypothesis (especially when data are noisy and when the samples
+% size is small).
 
 % \section*{Software and data}
 % The data were taken from \dots. All analyses were conducted in the R programming
