@@ -230,7 +230,7 @@ postPPtheta <- function(theta, tr, sr, to, so, x = 1, y = 1, alpha = NA, ...) {
     stopifnot(
         1 <= length(theta),
         any(!is.numeric(theta)) == FALSE,
-        any(!is.finite(theta)) == FALSE,
+        ## any(!is.finite(theta)) == FALSE,
 
         length(tr) == 1,
         is.numeric(tr),

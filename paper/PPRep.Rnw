@@ -235,26 +235,51 @@ parameter in the normal model.
 \section{Parameter estimation}
 \label{sec:parameter-estimation}
 << "posterior-distribution" >>=
+## functoin to format BF
+.formatBF_ <- function(BF, digits = "default") {
+    ## check inputs
+    stopifnot(
+        length(BF) == 1,
+        is.numeric(BF),
+        (is.finite(BF) && 0 < BF) || is.na(BF),
+
+        length(digits) == 1,
+        (is.character(digits) && digits == "default") ||
+        (is.numeric(digits) && 0 <= digits)
+    )
+    ## return NA if input NA/nan
+    if (is.na(BF) || is.nan(BF))
+        result <- NA
+    else {
+        ## format BF
+        if (digits == "default") {
+            if (BF < 1/1000)
+                result <- "< 1/1000"
+            if ((BF >= 1/1000) & (BF <= 1/10))
+                result <- paste0("1/", as.character(round(1/BF)))
+            if ((BF > 1/10) & (BF < 1))
+                result <- paste0("1/", as.character(round(1/BF, digits = 1)))
+            if ((BF < 10) & (BF >= 1))
+                result <- as.character(round(BF, digits = 1))
+            if ((BF >= 10) & (BF <= 1000))
+                result <- as.character(round(BF))
+            if (BF > 1000)
+                result <- "> 1000"
+        } else {
+            if (BF < 1)
+                result <- paste0("1/", as.character(round(1/BF, digits = digits)))
+            else
+                result <- as.character(round(BF, digits = digits))
+        }
+        ## when 1/1 return 1
+        if (result == "1/1") result <- "1"
+    }
+    return(result)
+}
+formatBF <- Vectorize(FUN = .formatBF_)
+
 ## functions are now in pkg
 library(ppRep)
-
-## ## check that posterior integrates to one
-## .intFunAlpha <- function(alpha, tr, sr, to, so, x, y) {
-##     intFunTheta <- function(theta) {
-##         postPP(theta = theta, alpha = alpha, tr = tr, sr = sr, to = to,
-##                so = so, x = x, y = y)
-##     }
-##     integrate(f = intFunTheta, lower = -Inf, upper = Inf)$value
-## }
-## intFunAlpha <- Vectorize(FUN = .intFunAlpha)
-## tr <- 2.5
-## sr <- 0.8
-## to <- 1.9
-## so <- 1
-## x <- 1
-## y <- 1
-## integrate(f = intFunAlpha, lower = 0, upper = 1, tr = tr, sr = sr, to = to,
-##           so = so, x = x, y = y)
 @
 
 % asdsad
@@ -847,9 +872,9 @@ bfDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
 library(xtable)
 library(dplyr)
 dfTab <- bfDF %>%
-    mutate(bf = BayesRep::formatBF(bf),
-           bfr = BayesRep::formatBF(bfr),
-           bfdc = BayesRep::formatBF(bfdc),
+    mutate(bf = formatBF(bf),
+           bfr = formatBF(bfr),
+           bfdc = formatBF(bfdc),
            tr = round(tr, 2),
            sr = round(sr, 2)) %>%
     arrange(tr)
@@ -929,7 +954,7 @@ error $\sigma_{o} = \Sexpr{round(so, 2)}$. The bound is minimized for a true
 effect size of
 $ \tilde{\theta} = (\that_{o})/\{1 - (s  \sigma^{2}_{o})/\kappa^{2}\} = \Sexpr{round(trueMin, 2)}$,
 so the most extreme level we can obtain is
-$\BF_{\text{dc}}^{*} = \Sexpr{BayesRep::formatBF(bfBound)}$. Even in an
+$\BF_{\text{dc}}^{*} = \Sexpr{formatBF(bfBound)}$. Even in an
 infinitely precise replication study, we cannot find more evidence for
 $H_{\text{c}}$.
 
@@ -1057,7 +1082,7 @@ plotDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
                                direction = ">="))
     outDF <- rbind(outDF1, outDF2)
     outDF$yFacetLab <- paste0("'Pr(BF'['dc']", outDF$direction,
-                              BayesRep::formatBF(outDF$level),
+                              formatBF(outDF$level),
                               "~ '|' ~ italic(H['i']) *", "')'")
     outDF$xFacetLab <- paste0("{hat(theta)[italic(o)] ==",
                               round(outDF$to, 2),
@@ -1098,7 +1123,7 @@ plotDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
 ##                                direction = ">="))
 ##     outDF <- rbind(outDF1, outDF2)
 ##     outDF$yFacetLab <- paste0("'Pr(BF'['dc']", outDF$direction,
-##                               BayesRep::formatBF(outDF$level),
+##                               formatBF(outDF$level),
 ##                               "~ '|' ~ italic(H['i']) *", "')'")
 ##     outDF$xFacetLab <- paste0("{hat(theta)[italic(o)] ==",
 ##                               round(outDF$to, 2),
@@ -1146,7 +1171,7 @@ ssDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
                               sr = srHc, c = so^2/srHc^2, to = to, so = so,
                               direction = "<=", power = pow))
     outDF$yFacetLab <- paste0("'Pr(BF'['dc']", outDF$direction,
-                              BayesRep::formatBF(outDF$level),
+                              formatBF(outDF$level),
                               "~ '|' ~ italic(H['i']) *", "')'")
     outDF$xFacetLab <- paste0("{hat(theta)[italic(o)] ==",
                               round(outDF$to, 2),
@@ -1172,7 +1197,7 @@ ggplot(data = plotDF, aes(x = c, y = p, color = type)) +
     scale_y_continuous(breaks = powbks, labels = scales::percent,
                        limits = c(0, 1)) +
     scale_color_brewer(palette = "Dark2", labels = scales::parse_format()) +
-    scale_x_log10(breaks = cbks, labels = BayesRep::formatBF(cbks)) +
+    scale_x_log10(breaks = cbks, labels = formatBF(cbks)) +
     theme_bw() +
     theme(panel.grid.minor = element_blank(),
           strip.background.y = element_blank(), strip.placement = "outside")
