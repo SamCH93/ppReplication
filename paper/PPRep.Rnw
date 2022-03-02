@@ -122,8 +122,8 @@ opts_chunk$set(fig.height = 4,
         heterogeneity variance are fixed. We establish that a similar mapping
         exists also in the case when these parameters are assigned a prior
         distribution. Our results help to better understand prior distributions
-        on heterogenetiy variances, and also how prior models can alternatively
-        estimated through a hierarchical framework.
+        on heterogenetiy variances, and also how power prior models can
+        alternatively be estimated through a hierarchical modeling framework.
       } \\
       \rule{\textwidth}{0.5pt} \emph{Key words}: Power prior, hierarchical
       models, replication studies, historical data, Bayesian hypothesis testing,
@@ -213,10 +213,10 @@ most common choice being a marginal beta distribution
 \begin{align*}
   \alpha \given x, y \sim \Be(x, y)
 \end{align*}
-for a power prior conditional on $\alpha$ as in~\eqref{eq:pp}. The uniform
-distribution ($x = 1$, $y = 1$) is often recommended as the default choice in
-the literature \citep{Ibrahim2015}. However, we note that if $\alpha$ is not
-restricted to the unit interval, another default choice could be a
+for a normalized power prior conditional on $\alpha$ as in~\eqref{eq:pp}. The
+uniform distribution ($x = 1$, $y = 1$) is often recommended as the default
+choice in the literature \citep{Ibrahim2015}. However, we note that if $\alpha$
+is not restricted to the unit interval, another default choice could be a
 $f(\alpha) \propto \alpha^{-1}$ as this is the reference prior for a precision
 parameter in the normal model.
 % In order for the joint prior of $\alpha$ and $\theta$ to be a valid propability
@@ -479,7 +479,7 @@ contrast, the marginal posterior of the most conflicting estimate
 least peaked posterior, despite being the most precise estimate among the three.
 
 
-\subsection{Connection to hierarchical models}
+\subsection{Connection to parameter estimation hierarchical models}
 Hierarchical modeling is another approach that allows for incorporation of
 historical data, and hierarchical models have also been used in the replication
 setting previously \citep{Bayarri2002, Pawel2020}. Assume a hierarchical model
@@ -596,15 +596,13 @@ are random. If it would exist, it must hold for any $\theta$ = $\theta_{r}$ that
   % \frac{2\sigma^{2}_{o}}{(2 \tau^{2}_{*} + \sigma^{2}_{o})^{2}} \,
   % \text{d} \tau^{2}_{*} \\
 \end{align}
-We can now apply a change of variables to the left or right hand side of
-\eqref{eq:margequal} so that the marginal posteriors conditional on $\tau^{2}$
-and $\alpha$ match. It is then left to investigate whether there are priors
+By applying a change of variables to the left or right hand side of
+\eqref{eq:margequal}, the marginal posteriors conditional on $\tau^{2}$ and
+$\alpha$ match. It is now left to investigate whether there are priors
 $f(\tau^{2})$ and $f(\alpha)$ so that also the marginal posteriors of $\tau^{2}$
-and $\alpha$ match.
-
-By replacing the beta prior in~\eqref{eq:margalpha} with an unspecified prior
-$f(\alpha)$, we can see that the marginal posterior distribution of $\alpha$ is
-proportional to
+and $\alpha$ match. By replacing the beta prior in~\eqref{eq:margalpha} with an
+unspecified prior $f(\alpha)$, we can see that the marginal posterior
+distribution of $\alpha$ is proportional to
 \begin{align*}
   f(\alpha \given \that_{o}, \that_{r})
   \propto f(\alpha) \times
@@ -643,13 +641,14 @@ posterior of the heterogeneity variance $\tau^{2}$ is proportional to
 % $\hat{\mu}(\tau^{2}) = \{\sum_{i \in \{o, r\}} \that_{i}/(\tau^{2} + \sigma^{2}_{i})\}
 %     \widehat{V}(\tau^{2})$ \citep[chapter 5.4]{Gelman2013}.
 This implies that the marginal posteriors of the effect sizes $\theta$ and
-$\theta_{*}$ match if it holds for every $\tau^{2} = \tau^{2}_{*}$ that
-\begin{align*}
+$\theta_{r}$ match if it holds for every $\tau^{2} = \tau^{2}_{*}$ that
+\begin{align}
+  \label{eq:matchCond}
   f(\tau^{2}) = f(\alpha = \sigma^{2}_{o}/(2 \tau^{2}_{*} + \sigma^{2}_{o})) \,
   \frac{2\sigma^{2}_{o}}{(2 \tau^{2}_{*} + \sigma^{2}_{o})^{2}}.
-\end{align*}
+\end{align}
 For example, if we assign a $\Be(x, y)$ prior to $\alpha$, the posteriors will
-match when we assign a
+match for a
 \begin{align*}
   f(\tau^{2}) \propto
   \left(\frac{2\tau^{2}}{\sigma^{2}_{o}} + 1\right)^{1 - x}
@@ -779,34 +778,38 @@ mass to small $\tau^{2}$ and has zero density at $\tau^{2} = 0$.
 Apart from estimation of $\theta$ and $\alpha$, one may also want to test
 hypotheses. The standard Bayesian approach is to compute the Bayes factor
 contrasting the likelihood of the data under two competing hypothesis
-\citep{Jeffreys1961, Kass1995}.
+\citep{Jeffreys1961, Kass1995}, to quantify the strength of evidence for either
+of them.
 
 
 \subsection{Hypotheses about the effect size}
 We may want to quantify the evidence for a non-zero effect size $\theta$ by
 testing $H_{0} \colon \theta = 0$ to $H_{1} \colon \theta \neq 0$. This requires
 specification of a prior distribution under $H_{1}$, a natural choice is to use
-the power prior based on the original data from~\eqref{eq:pp}. The respective
-Bayes factor is then given by
+the normalized power prior based on the original data from~\eqref{eq:pp}. The
+respective Bayes factor is then given by
 \begin{align}
   % \BF_{01}^{\theta}
-  \BF_{01}(\that_{r}\given \alpha \sim f(\alpha \given H_{1}))
+  \BF_{01}(\that_{r}\given x, y)% \given \alpha \sim f(\alpha \given H_{1}))
   &= \frac{f(\that_{r} \given H_{0})}{f(\that_{r} \given H_{1})}
-    =  \frac{\Nor(\that_{r}; 0, \sigma^{2}_{r})}{\int_{0}^{1} \Nor(\that_{r}; \that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \, f(\alpha \given H_{1}) \, \text{d}\alpha}.
+    =  \frac{\Nor(\that_{r}; 0, \sigma^{2}_{r})}{\int_{0}^{1} \Nor(\that_{r}; \that_{o},
+      % \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \, f(\alpha \given H_{1}) \, \text{d}\alpha}.
+    \sigma^{2}_{o}/\alpha) \, \Be(\alpha; x, y) \, \text{d}\alpha}.
     % because of S-D ratio this is also given by
     % \frac{f(\theta = 0 \given \that_r, \that_o, \sigma_o, \sigma_r)}{f(\theta = 0)}
     % the ratio of marginal posterior to marginal prior evaluated at zero
   \label{eq:bf01}
 \end{align}
-{\samuel{not sure about the notation}}
-A reasonable choice for the prior of $\alpha$ under $H_{1}$ is a $\Be(1, 1)$
-distribution. However, it is worth noting that fixing $\alpha = 1$ leads to the
-\emph{replication Bayes factor} under normality \citep{Verhagen2014, Ly2018,
-  Pawel2020b}, \ie the Bayes factor contrasting a point null hypothesis to the
-posterior distribution of the effect size based on the original data (and in
-this case a uniform initial prior). The power prior version is thus a
-generalization of the standard replication Bayes factor where the original data
-are to some extent discounted.
+A reasonable choice for the prior of $\alpha$ under $H_{1}$ is a uniform
+$\alpha \sim \Be(1, 1)$ distribution. However, it is worth noting that fixing
+$\alpha = 1$ leads to the \emph{replication Bayes factor} under normality
+\citep{Verhagen2014, Ly2018, Pawel2020b}, that is, the Bayes factor contrasting
+a point null hypothesis to the posterior distribution of the effect size based
+on the original data (and in this case a uniform initial prior). A fixed
+$\alpha = 1$ can also be seen as the limiting case of a beta prior with $y = 1$
+and $x \to \infty$. The power prior version of the replication Bayes factor is
+thus a generalization of the standard replication Bayes factor where the
+original data are to some extent discounted.
 
 
 \subsection{Hypotheses about the power parameter}
@@ -825,15 +828,47 @@ proper initial prior, \eg the unit-information prior \citep{Kass1995b}
 with $\kappa^{2}$ the variance from one (effective) observation. This leads to
 the Bayes factor
 \begin{align}
-  \BF_{\text{dc}}(\that_{r}\given \theta \sim \Nor(0, \kappa^{2}))
+  \BF_{\text{dc}}(\that_{r} \given \kappa^{2})% \given \theta \sim \Nor(0, \kappa^{2}))
   &= \frac{f(\that_{r} \given H_{\text{d}})}{f(\that_{r}
     \given H_{\text{c}})}
     = \frac{\Nor(\that_{r};0, \sigma^{2}_{r} + \kappa^{2})}{\Nor(\that_{r}; s  \that_{o}, \sigma^{2}_{r} + s  \sigma^{2}_{o})}
     \label{eq:bfalpha}
 \end{align}
 with shrinkage factor
-$s = (\kappa^{2}/\sigma^{2}_{o}) / (1 + \kappa^{2}/\sigma^{2}_{o})$.
-{\samuel{also here not sure about notation}}
+$s = (\kappa^{2}/\sigma^{2}_{o}) / \{1 + (\kappa^{2}/\sigma^{2}_{o})\}$.
+
+An alternative approach that avoids the specification of a proper initial prior
+for $\theta$ is to specify priors for $\alpha$ under $H_{\text{d}}$ and
+$H_{\text{c}}$. A suitable class of priors are
+$H_{\text{d}}\colon \alpha \sim \Be(1, y)$ and
+$H_{\text{c}}\colon \alpha \sim \Be(x, 1)$ with $x, y > 1$. Two examples with
+$x = 2$ and $y = 2$ are shown in Figure~\ref{fig:matchingpriors}. These priors
+have the highest density at $\alpha = 0$, respectively, $\alpha = 1$, they have
+zero density at the opposite side, and they are monotonically decreasing,
+respectively, increasing.
+%     Moreover, the approach
+% also allows to use flat initial priors for the effect size. The resulting Bayes
+% factor is given by
+% \begin{align*}
+%   \BF_{\text{dc}}(\that_{r}; x_{\text{c}}, y_{\text{d}})% \given \theta \sim \Nor(0, \kappa^{2}))
+%   &=  \frac{\int_{0}^{1}\Nor(\that_{r};\that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \,
+%     \Be(\alpha; 1, y_{\text{d}}) \, \text{d}\alpha}{\int_{0}^{1}\Nor(\that_{r};\that_{r}, \sigma^{2}_{r}
+%     + \sigma^{2}_{o}/\alpha) \, \Be(\alpha; x_{\text{c}}, 1) \, \text{d}\alpha}.
+% \end{align*}
+Instead of testing two composite hypotheses, one can also contrast the composite
+hypothesis $H_{\text{d}}\colon \alpha \sim \Be(1, y_{\text{d}})$ to the simple
+hypothesis $H_{\text{c}} \colon \alpha = 1$, as also under this approach no
+proper initial prior has to be specified for the effect size $\theta$. The
+resulting Bayes factor is then given by
+\begin{align*}
+  \BF_{\text{dc}}(\that_{r}\given y)
+  &=  \frac{\int_{0}^{1}\Nor(\that_{r};\that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \,
+    \Be(\alpha; 1, y) \, \text{d}\alpha}{\Nor(\that_{r};\that_{r}, \sigma^{2}_{r}
+    + \sigma^{2}_{o})}.
+\end{align*}
+The parameter $y$ determines how much mass small values of $\alpha$ receive
+under $H_{\text{d}}$. The simple hypothesis $H_{\text{d}} \colon \alpha = 0$ can
+be seen as a limiting case when $y \to \infty$.
 
 \subsection{Example ``\Sexpr{ex}'' (continued)}
 Table~\ref{tab:hypothesis} displays the results of the proposed hypothesis tests
@@ -858,13 +893,31 @@ obtained from setting $\alpha = 1$.
 << "bf-testing", results = "asis" >>=
 ## compute BFs for effect sizes and power parameter
 k <- sqrt(2)
+x <- 1
+y <- 1
+xc <- 2
+yd <- 2
 bfDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
     ## compute suite of BFs for power prior models
-    bf01 <- bfPPtheta(tr = tr[i], sr = sr[i], to = to, so = so, x = 1, y = 1)
+    bf01 <- bfPPtheta(tr = tr[i], sr = sr[i], to = to, so = so, x = x, y = y)
     bfr <- bfPPtheta(tr = tr[i], sr = sr[i], to = to, so = so, alpha = 1)
     bfdc <- bfPPalpha(tr = tr[i], sr = sr[i], to = to, so = so, uv = k^2)
+
+    ## compute BFdc with random alpha
+    ## fHd <- integrate(f = function(alpha) {
+    ##     dnorm(x = tr[i], mean = to, sd = sqrt(sr[i]^2 + so^2/alpha)) *
+    ##         dbeta(x = alpha, shape1 = 1, shape2 = yd)
+    ## }, lower = 0, upper = 1)$value
+    ## ## fHc <- integrate(f = function(alpha) {
+    ## ##     dnorm(x = tr[i], mean = to, sd = sqrt(sr[i]^2 + so^2/alpha)) *
+    ## ##         dbeta(x = alpha, shape1 = xc, shape2 = 1)
+    ## ## }, lower = 0, upper = 1)$value
+    ## fHc <- dnorm(x = tr[i], mean = to, sd = sqrt(sr[i]^2 + so^2))
+    ## bfdcRandom <- fHd/fHc
+    bfdcRandom <- bfPPalpha(tr = tr[i], sr = sr[i], to = to, so = so, y = yd)
+
     out <- data.frame(tr = tr[i], sr = sr[i], bf = bf01, bfr = bfr,
-                      bfdc = bfdc)
+                      bfdc = bfdc, bfdcRandom = bfdcRandom)
     return(out)
 }))
 
@@ -875,15 +928,26 @@ dfTab <- bfDF %>%
     mutate(bf = formatBF(bf),
            bfr = formatBF(bfr),
            bfdc = formatBF(bfdc),
+           bfdcRandom = formatBF(bfdcRandom),
            tr = round(tr, 2),
            sr = round(sr, 2)) %>%
     arrange(tr)
 xtab <- xtable(dfTab)
+## colnames(xtab) <- c("$\\hat{\\theta}_r$",
+##                     "$\\sigma_r$",
+##                     "$\\BF_{01}(\\hat{\\theta}_r \\given \\alpha \\sim \\Be(1, 1))$",
+##                     "$\\BF_{01}(\\hat{\\theta}_r \\given \\alpha = 1)$",
+##                     "$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given \\theta \\sim \\Nor(0, 2))$")
 colnames(xtab) <- c("$\\hat{\\theta}_r$",
                     "$\\sigma_r$",
-                    "$\\BF_{01}(\\hat{\\theta}_r \\given \\alpha \\sim \\Be(1, 1))$",
+                    paste0("$\\BF_{01}(\\hat{\\theta}_r \\given x =", x, ", y =", y, ")$"),
                     "$\\BF_{01}(\\hat{\\theta}_r \\given \\alpha = 1)$",
-                    "$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given \\theta \\sim \\Nor(0, 2))$")
+                    paste0("$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given \\kappa^2 =",
+                           k^2, ")$"),
+                    ## paste0("$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given x =", xc,
+                    ##        ", y = ", yd, ")$")
+                    paste0("$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given y = ",
+                           yd, ")$"))
 align(xtab) <- rep("c", length(colnames(xtab)) + 1)
 print(xtab, floating = FALSE, include.rownames = FALSE,
       sanitize.text.function = function(x){x}, booktabs = TRUE)
@@ -1246,6 +1310,37 @@ error probabilities for finding strong evidence for $H_{\text{d}}$. At the same
 time, it seems that the probability for finding misleading evidence for
 $H_{\text{c}}$ cannot be reduced below around 5\% which might undesirably high
 for certain applications.
+
+\subsection{Connection to hypothesis testing in hierarchical models}
+As with parameter estimation, it is also of interest to know whether there is a
+correspondence between hypothesis tests in the power prior and the hierarchical
+modeling frameworks. Concerning the generalized replication Bayes factor
+from~\eqref{eq:bf01} testing $H_{0} \colon \theta = 0$ vs.
+$H_{1} \colon \theta \sim \Nor(\that_{o}, \sigma^{2}_{o}/\alpha)$, it is
+straightforward to show that it matches with the Bayes factor contrasting
+\begin{align*}
+  &H_{0}\colon \theta_{*} = 0& &\text{to}&
+  &H_{1} \colon \theta_{*} \given \tau^{2} \sim \Nor(\that_{o}, \sigma^{2}_{o} + \tau^{2})& \\
+  &\phantom{H_{0}\colon} \tau^{2} = 0& &&
+  &\phantom{H_{0}\colon}\tau^{2} = (1/\alpha - 1)\, (\sigma^{2}_{o}/2)&
+\end{align*}
+in the hierachical framework. Under $H_{1}$ one may also assign a prior
+distribution to $\tau^{2}$ which must satisfy the
+conditions~\eqref{eq:matchCond} as for the matching posteriors. The Bayes factor
+thus quantifies the plausibility of the hypothesis $H_{0}$ that the global
+effect size $\theta_{*}$ is zero and that there is no effect size heterogeneity,
+relative to the hypothesis $H_{1}$ that $\theta_{*}$ follows the posterior based
+on the original data and an initial flat prior for $\theta_{*}$.
+
+The Bayes factor~\eqref{eq:bfalpha} testing $H_{\text{c}}\colon \alpha = 1$ to
+$H_{\text{d}}\colon \alpha = 0$ can be obtained in the hierarchical framework by
+contrasting
+\begin{align*}
+  &H_{\text{d}}\colon \theta_{*} \sim \Nor(0, \kappa^{2}), \tau^{2} = 0&
+  &\text{to}&
+  &H_{\text{c}} \colon \theta_{*} \sim \Nor(s\,\that_{o}, s\,\sigma^{2}_{o}), \tau^{2} = 0& \\
+\end{align*}
+with $s = (\kappa^{2}/\sigma^{2}_{o})/\{1 + (\kappa^{2}/\sigma^{2}_{o})\}$.
 
 \section{Discussion}
 We showed how the power prior framework can be used for design and analysis of
