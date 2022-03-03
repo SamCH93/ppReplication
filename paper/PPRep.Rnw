@@ -201,8 +201,8 @@ as proposed by \citet{Neuenschwander2009}. There are different ways to specify
 $\alpha$. The simplest approach fixes $\alpha$ to an a priori reasonable value,
 possibly informed from external knowledge about the similarity of the two
 studies. Another option is to use the empirical Bayes estimate
-\citep{Gravestock2017}, \ie, the value of $\alpha$ that maximizes the likelihood
-of the replication data marginalized over the power prior
+\citep{Gravestock2017}, that is, the value of $\alpha$ that maximizes the
+likelihood of the replication data marginalized over the power prior
 \begin{align*}
   \hat{\alpha}_{\text{EB}}
   = \max\left[0, \min\left\{1, \frac{\sigma^{2}_{o}}{(\that_{o} - \that_{r})^{2}
@@ -215,10 +215,10 @@ most common choice being a marginal beta distribution
 \end{align*}
 for a normalized power prior conditional on $\alpha$ as in~\eqref{eq:pp}. The
 uniform distribution ($x = 1$, $y = 1$) is often recommended as the default
-choice in the literature \citep{Ibrahim2015}. However, we note that if $\alpha$
-is not restricted to the unit interval, another default choice could be a
-$f(\alpha) \propto \alpha^{-1}$ as this is the reference prior for a precision
-parameter in the normal model.
+choice in the literature \citep{Ibrahim2015}. % However, we note that if $\alpha$
+% is not restricted to the unit interval, another default choice could be a
+% $f(\alpha) \propto \alpha^{-1}$ as this is the reference prior for a precision
+% parameter in the normal model.
 % In order for the joint prior of $\alpha$ and $\theta$ to be a valid propability
 % distribution, their product must be appropriately normalized
 % \begin{align*}
@@ -1414,10 +1414,10 @@ difficult to do learn about the power parameter from two studies alone. Failed
 replication efforts (in terms of null hypothesis testing) have led many to argue
 that researchers should shift their focus to effect size comparison. Our results
 show that in order to obtain conclusive evidence for effect size compatibility,
-regardless whether power prior or hierarchical modeling frameworks are used,
-highly precise effect estimates are required. Obtaining high enough estimation
-accuracy is likely is more resource intensive than obtaining conclusive evidence
-for testing a null hypothesis. \dots
+highly precise effect estimates are required, regardless whether power prior or
+hierarchical modeling frameworks are used. % Obtaining high enough estimation
+% accuracy is likely is more resource intensive than obtaining conclusive evidence
+% for testing a null hypothesis. \dots
 %     , often more difficult than to find evidence
 % against a null hypothesis (especially when data are noisy and when the samples
 % size is small).
