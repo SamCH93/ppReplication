@@ -608,11 +608,11 @@ distribution of $\alpha$ is proportional to
   \propto f(\alpha) \times
   \Nor(\that_{r}; \that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha).
 \end{align*}
-After a change of variables $\tau^{2}_{*} = (1/\alpha - 1)\sigma^{2}_{o}/2$ this
+After a change of variables $\tau^{2}_{*} = (1/\alpha - 1)\,(\sigma^{2}_{o}/2)$ this
 becomes
 \begin{align*}
   f(\tau^{2}_{*} \given \that_{o}, \that_{r})
-  \propto f(\alpha = \sigma^{2}_{o}/(2 \tau^{2}_{*} + \sigma^{2}_{o})) \,
+  \propto f\left(\alpha = \frac{\sigma^{2}_{o}}{2 \tau^{2}_{*} + \sigma^{2}_{o}}\right) \,
   \frac{2\sigma^{2}_{o}}{(2 \tau^{2}_{*} + \sigma^{2}_{o})^{2}} \times
   (\sigma^{2}_{o} + \sigma^{2}_{r} +  2\tau^{2}_{*})^{-1/2} \,
   % \Nor(\that_{r}; \that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o} + 2 \tau^{2}_{*}).
@@ -644,7 +644,7 @@ This implies that the marginal posteriors of the effect sizes $\theta$ and
 $\theta_{r}$ match if it holds for every $\tau^{2} = \tau^{2}_{*}$ that
 \begin{align}
   \label{eq:matchCond}
-  f(\tau^{2}) = f(\alpha = \sigma^{2}_{o}/(2 \tau^{2}_{*} + \sigma^{2}_{o})) \,
+  f(\tau^{2}) = f\left(\alpha = \frac{\sigma^{2}_{o}}{2 \tau^{2}_{*} + \sigma^{2}_{o}}\right) \,
   \frac{2\sigma^{2}_{o}}{(2 \tau^{2}_{*} + \sigma^{2}_{o})^{2}}.
 \end{align}
 For example, if we assign a $\Be(x, y)$ prior to $\alpha$, the posteriors will
@@ -655,8 +655,16 @@ match for a
   \left(\frac{\sigma^{2}_{o}}{2\tau^{2}} + 1\right)^{1 - y}
   \frac{2\sigma^{2}_{o}}{(2 \tau^{2} + \sigma^{2}_{o})^{2}}
 \end{align*}
-prior on $\tau^{2}$.
-
+prior on $\tau^{2}$. Similarly, we could do a change of variables from
+$\tau^{2}$ to $\alpha_{*} = \sigma^{2}_{o}/(2\tau^{2} + \sigma^{2}_{o})$ and
+see that the posteriors match if we assing a
+\begin{align}
+  \label{eq:matchCond2}
+  f(\alpha) = f\left\{\tau^{2} = \left(\frac{1}{\alpha_{*}} - 1\right) \frac{\sigma^{2}_{o}}{2}
+  \right\} \,
+  \frac{\sigma^{2}_{o}}{2\alpha^{2}_{*}}
+\end{align}
+prior to $\tau^{2}$.
 \begin{figure}[!htb]
 << "corresponding-priors", fig.height = 5 >>=
 ## corresponding heterogeneity variance priors for alpha ~ Beta(a, b)
@@ -794,7 +802,7 @@ respective Bayes factor is then given by
   &= \frac{f(\that_{r} \given H_{0})}{f(\that_{r} \given H_{1})}
     =  \frac{\Nor(\that_{r}; 0, \sigma^{2}_{r})}{\int_{0}^{1} \Nor(\that_{r}; \that_{o},
       % \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \, f(\alpha \given H_{1}) \, \text{d}\alpha}.
-    \sigma^{2}_{o}/\alpha) \, \Be(\alpha; x, y) \, \text{d}\alpha}.
+    \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \, \Be(\alpha; x, y) \, \text{d}\alpha}.
     % because of S-D ratio this is also given by
     % \frac{f(\theta = 0 \given \that_r, \that_o, \sigma_o, \sigma_r)}{f(\theta = 0)}
     % the ratio of marginal posterior to marginal prior evaluated at zero
@@ -802,7 +810,15 @@ respective Bayes factor is then given by
 \end{align}
 A reasonable choice for the prior of $\alpha$ under $H_{1}$ is a uniform
 $\alpha \sim \Be(1, 1)$ distribution. However, it is worth noting that fixing
-$\alpha = 1$ leads to the \emph{replication Bayes factor} under normality
+$\alpha = 1$ leads to
+\begin{align}
+  % \BF_{01}^{\theta}
+  \BF_{01}(\that_{r}\given \alpha = 1)
+    =  \frac{\Nor(\that_{r}; 0, \sigma^{2}_{r})}{ \Nor(\that_{r}; \that_{o},
+    \sigma^{2}_{o} + \sigma^{2}_{r})},
+  \label{eq:bfr}
+\end{align}
+which is the \emph{replication Bayes factor} under normality
 \citep{Verhagen2014, Ly2018, Pawel2020b}, that is, the Bayes factor contrasting
 a point null hypothesis to the posterior distribution of the effect size based
 on the original data (and in this case a uniform initial prior). A fixed
@@ -816,10 +832,11 @@ original data are to some extent discounted.
 In order to quantify compatibility of original and replication study we may want
 to test hypotheses regarding the power parameter $\alpha$ as it provides a link
 between the studies. For example, we might want to test
-$H_{\text{d}} \colon \alpha = 0$ (``different'') vs.
-$H_{\text{c}} \colon \alpha = 1$ (``compatible''). One issue is that for a flat
-initial prior $f(\theta) \propto 1$, the power prior with $\alpha = 0$ is not
-proper and so the resulting Bayes factor is only defined up to an arbitrary
+$H_{\text{c}} \colon \alpha = 1$ (``compatible'') vs.
+$H_{\text{d}} \colon \alpha < 1$ (``different''). One approach is to assign a
+point prior $H_{\text{d}}\colon\alpha = 0$. This leads to the issue that for a
+flat initial prior $f(\theta) \propto 1$, the power prior with $\alpha = 0$ is
+not proper and so the resulting Bayes factor is only defined up to an arbitrary
 constant. Instead of the flat prior, we may thus choose an uninformative but
 proper initial prior, \eg the unit-information prior \citep{Kass1995b}
 \begin{align*}
@@ -838,14 +855,13 @@ with shrinkage factor
 $s = (\kappa^{2}/\sigma^{2}_{o}) / \{1 + (\kappa^{2}/\sigma^{2}_{o})\}$.
 
 An alternative approach that avoids the specification of a proper initial prior
-for $\theta$ is to specify priors for $\alpha$ under $H_{\text{d}}$ and
+for $\theta$ is to assign priors to $\alpha$ under $H_{\text{d}}$ and
 $H_{\text{c}}$. A suitable class of priors are
 $H_{\text{d}}\colon \alpha \sim \Be(1, y)$ and
 $H_{\text{c}}\colon \alpha \sim \Be(x, 1)$ with $x, y > 1$. Two examples with
 $x = 2$ and $y = 2$ are shown in Figure~\ref{fig:matchingpriors}. These priors
-have the highest density at $\alpha = 0$, respectively, $\alpha = 1$, they have
-zero density at the opposite side, and they are monotonically decreasing,
-respectively, increasing.
+have the highest density at $\alpha = 0$, respectively, $\alpha = 1$ and they
+are monotonically decreasing, respectively, increasing.
 %     Moreover, the approach
 % also allows to use flat initial priors for the effect size. The resulting Bayes
 % factor is given by
@@ -855,17 +871,18 @@ respectively, increasing.
 %     \Be(\alpha; 1, y_{\text{d}}) \, \text{d}\alpha}{\int_{0}^{1}\Nor(\that_{r};\that_{r}, \sigma^{2}_{r}
 %     + \sigma^{2}_{o}/\alpha) \, \Be(\alpha; x_{\text{c}}, 1) \, \text{d}\alpha}.
 % \end{align*}
-Instead of testing two composite hypotheses, one can also contrast the composite
+Finally, a compromise between the two approaches is to contrast the composite
 hypothesis $H_{\text{d}}\colon \alpha \sim \Be(1, y_{\text{d}})$ to the simple
 hypothesis $H_{\text{c}} \colon \alpha = 1$, as also under this approach no
 proper initial prior has to be specified for the effect size $\theta$. The
 resulting Bayes factor is then given by
-\begin{align*}
+\begin{align}
+  \label{eq:bfdcrandom}
   \BF_{\text{dc}}(\that_{r}\given y)
   &=  \frac{\int_{0}^{1}\Nor(\that_{r};\that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \,
-    \Be(\alpha; 1, y) \, \text{d}\alpha}{\Nor(\that_{r};\that_{r}, \sigma^{2}_{r}
+    \Be(\alpha; 1, y) \, \text{d}\alpha}{\Nor(\that_{r};\that_{o}, \sigma^{2}_{r}
     + \sigma^{2}_{o})}.
-\end{align*}
+\end{align}
 The parameter $y$ determines how much mass small values of $\alpha$ receive
 under $H_{\text{d}}$. The simple hypothesis $H_{\text{d}} \colon \alpha = 0$ can
 be seen as a limiting case when $y \to \infty$.
@@ -880,14 +897,14 @@ the Bayes factors are very close to the standard replication Bayes factors
 obtained from setting $\alpha = 1$.
 \begin{table}[!htb]
   \centering
-  \caption{Hypothesis testing for replications of experiment ``\Sexpr{ex}'' with
+  \caption{Hypothesis tests for replications of experiment ``\Sexpr{ex}'' with
     original standardized mean difference effect estimate
     $\that_{o} = \Sexpr{round(to, 2)}$ and standard error
-    $\sigma_{o} = \Sexpr{round(so, 2)}$. Shown replication effect estimates
+    $\sigma_{o} = \Sexpr{round(so, 2)}$. Shown are replication effect estimates
     $\that_{r}$ with standard errors $\sigma_{r}$, Bayes factors contrasting
     $H_{0}\colon \theta = 0$ to $H_{1} \colon \theta \neq 0$ for different
-    priors of $\alpha$ under $H_{1}$, and Bayes factor contrasting
-    $H_{d}\colon \alpha = 0$ to $H_{c}\colon \alpha = 1$.\\}
+    priors for $\alpha$ under $H_{1}$, and Bayes factors contrasting
+    $H_{\text{d}}\colon \alpha < 1$ to $H_{\text{c}}\colon \alpha = 1$.\\}
   \label{tab:hypothesis}
 
 << "bf-testing", results = "asis" >>=
@@ -954,19 +971,24 @@ print(xtab, floating = FALSE, include.rownames = FALSE,
 @
 \end{table}
 
-In order to compute the Bayes factor for testing $H_{d}$ vs. $H_{c}$ we need to
-specify a unit variance for the unit-information prior. A crude approximation
-for the variance of a standardized mean difference effect estimate is given by
-$\Var(\that_i) = 4/n_{i}$ with $n_{i}$ the total sample size of the study, and
-assuming equal sample size in both groups \citep[p. 5]{Hedges2021}. We may thus
-set the variance of the unit-information prior to $\kappa^{2} = 2$ since at
-least one observation from each group is required to estimate a standardized
-mean difference (assuming the variance is known). Based on this choice, the data
-provide strong, respectively substantial evidence $H_{\text{c}}$ in the third
-and first replication study, while they indicate strong evidence for
-$H_{\text{d}}$ in the second replication study.
+In order to compute the Bayes factor for testing simple $H_{\text{d}}$ vs.
+simple $H_{\text{c}}$ we need to specify a unit variance for the
+unit-information prior. A crude approximation for the variance of a standardized
+mean difference effect estimate is given by $\Var(\that_i) = 4/n_{i}$ with
+$n_{i}$ the total sample size of the study, and assuming equal sample size in
+both groups \citep[p. 5]{Hedges2021}. We may thus set the variance of the
+unit-information prior to $\kappa^{2} = 2$ since at least one observation from
+each group is required to estimate a standardized mean difference (assuming the
+variance is known). Based on this choice, the data provide substantial,
+respectively strong evidence for $H_{\text{c}}$ in the first and second
+replication study, while they indicate strong evidence for $H_{\text{d}}$ in the
+third replication study. Looking at the Bayes factor which instead contrasts the
+composite $H_{\text{d}}\colon \alpha \sim \Be(1, \Sexpr{yd})$, it indicates
+absence of evidence for either hypothesis in the first and second replication,
+but in the third replication even stronger evidence for $H_{\text{d}}$ than
+under the simple approach.
 
-To conclude, our analysis suggests that only the third replication was
+To conclude, our analysis suggests that only the second replication was
 successful in the sense that it is compatible with the original study while also
 providing evidence against a null effect. The first replication is compatible
 but does not provide any evidence for a non-zero effect, whereas the second
@@ -974,16 +996,15 @@ replication provides much evidence for an effect but is incompatible with the
 original study.
 
 \subsection{Asymptotics}
-It is of interest to investigate the asymptotic behavior of the Bayes
-factors~\eqref{eq:bf01} and~\eqref{eq:bfalpha}. For instance, we may want to
-understand what happens when the sample size of the replication study $n_{r}$
-becomes larger. Assume that $\that_{r}$ is a consistent estimator of the true
-underlying effect size $\tilde{\theta}$, and that the standard error is
-inversely proportional to the square root of the sample size
-$\sigma_{r} = \kappa/\sqrt{n_{r}}$ with $\kappa^{2}$ some unit variance. As the
-replication sample size goes to infinity ($n_{r} \to \infty$), the estimate will
-converge in probability to the true effect size, and the standard error will go
-to zero.
+It is of interest to investigate the asymptotic behavior of the proposed Bayes
+factors. For instance, we may want to understand what happens when the sample
+size of the replication study $n_{r}$ becomes larger. Assume that $\that_{r}$ is
+a consistent estimator of the true underlying effect size $\tilde{\theta}$, and
+that the standard error is inversely proportional to the square root of the
+sample size $\sigma_{r} = \kappa/\sqrt{n_{r}}$ with $\kappa^{2}$ some unit
+variance. As the replication sample size goes to infinity ($n_{r} \to \infty$),
+the estimate will converge in probability to the true effect size, and the
+standard error will go to zero.
 
 << "bf-bound" >>=
 ## compute bound on the Bayes factor
@@ -994,54 +1015,121 @@ trueMin <- to/(1 - s*so^2/k^2)
 bfBound <- sqrt(s*so^2/k^2) * exp(-0.5 * trueMin^2/k^2 - (to - trueMin)^2/(s*so^2))
 @
 
-Assuming that the original estimate was not zero ($\that_{o} \neq 0$), the Bayes
-factor~\eqref{eq:bf01} with $\alpha = 1$ (the replication Bayes factor) is
-information consistent, meaning that it will increasingly favor the correct
-hypothesis as the replication data accumulate. {\samuel{also true for priors on
-    $\alpha$? Probably yes, can maybe do a Laplace approximation to prove it}}
-In contrast, the Bayes factor~\eqref{eq:bfalpha} does not grow unboundedly but
-converges to a constant
-\begin{align*}
+%     Assuming that the original estimate was not zero ($\that_{o} \neq 0$), t
+Assuming that the prior for $\alpha$ under $H_{1}$ has mass for $\alpha > 0$,
+the Bayes factor~\eqref{eq:bf01} % with $\alpha = 1$ (the replication Bayes
+% factor)
+is information consistent, meaning that it will increasingly favor the
+correct hypothesis as the replication data accumulate. In contrast, the Bayes factors~\eqref{eq:bfalpha} and~\eqref{eq:bfdcrandom} do not grow
+unboundedly but converge to constants
+\begin{align}
+  \label{eq:boundsimple}
   % \lim_{n_{r} \to \infty} \BF_{\text{dc}} (\that_{r}\given \theta \sim \Nor(0, \kappa^{2}))
-  \BF_{\text{dc}}^{*}
+  \BF_{\text{dc}}^{*}(\kappa^{2})
   &= % \frac{\Nor(\that_{r};0, \kappa^{2})}{\Nor(\that_{r}; s  \that_{o},
     % s  \sigma^{2}_{o})}
     \sqrt{s  \sigma^{2}_{o}/\kappa^{2}} \, \exp\left[
     -\frac{1}{2} \, \left\{\frac{\tilde{\theta}^{2}}{\kappa^{2}} -
-    \frac{(\tilde{\theta} - \that_{o})^{2}}{s  \sigma^{2}_{o}}\right\}\right].
+    \frac{(\tilde{\theta} - \that_{o})^{2}}{s  \sigma^{2}_{o}}\right\}\right]
+\end{align}
+and
+\begin{align*}
+  \BF_{\text{dc}}^{*}(y)
+  &= \frac{\int_{0}^{1} \Nor(\tilde{\theta}; \that_{o}, \sigma^{2}_{o}/\alpha)\,
+    \Be(\alpha; 1, y) \, \text{d}\alpha}{\Nor(\tilde{\theta}; \that_{o}, \sigma^{2}_{o})}.
 \end{align*}
 The amount of evidence one can find for either hypothesis thus depends on the
 original effect estimate $\that_{o}$, standard error $\sigma_{o}$, and the true
 effect size $\tilde{\theta}$. For instance, in the example from before we have
 an original effect estimate $\that_{o} = \Sexpr{round(to, 2)}$ and standard
-error $\sigma_{o} = \Sexpr{round(so, 2)}$. The bound is minimized for a true
-effect size of
-$ \tilde{\theta} = (\that_{o})/\{1 - (s  \sigma^{2}_{o})/\kappa^{2}\} = \Sexpr{round(trueMin, 2)}$,
+error $\sigma_{o} = \Sexpr{round(so, 2)}$. The bound~\eqref{eq:boundsimple} is
+minimized for a true effect size of
+$ \tilde{\theta} = (\that_{o})/\{1 - (s \sigma^{2}_{o})/\kappa^{2}\} = \Sexpr{round(trueMin, 2)}$,
 so the most extreme level we can obtain is
-$\BF_{\text{dc}}^{*} = \Sexpr{formatBF(bfBound)}$. Even in an
-infinitely precise replication study, we cannot find more evidence for
-$H_{\text{c}}$.
+$\BF_{\text{dc}}^{*} = \Sexpr{formatBF(bfBound)}$. Even in an infinitely precise
+replication study, we cannot find more evidence for $H_{\text{c}}$.
 
-% Under the (unrealistic) assumption
-% that the estimate is equal to the true effect size $\that_{o} = \tilde{\theta}$,
-% the bound
+
+\subsection{Connection to hypothesis testing in hierarchical models}
+
+As with parameter estimation, it is also of interest to know whether there is a
+correspondence between hypothesis tests in the power prior and the hierarchical
+modeling frameworks. Concerning the % replication Bayes factor under normality
+% from~\eqref{eq:bfr} it is straightforward to show that it matches with the Bayes
+% factor contrasting
+% \begin{align*}
+%   &H_{0}\colon \theta_{*} = 0, \tau^{2} = 0&
+%   &\text{to}&
+%   &H_{1} \colon \theta_{*} \given \tau^{2} \sim \Nor(\that_{o}, \sigma^{2}_{o} + \tau^{2}),
+%     \tau^{2} = 0&
+% \end{align*}
+generalized replication Bayes factor
+from~\eqref{eq:bf01} testing $H_{0} \colon \theta = 0$ vs.
+$H_{1} \colon \theta \neq 0$ %\sim \Nor(\that_{o}, \sigma^{2}_{o}/\alpha)$,
+it is straightforward to show that it matches with the Bayes factor contrasting
+\begin{align*}
+  &H_{0}\colon \theta_{*} = 0& &\text{to}&
+  &H_{1} \colon \theta_{*} \given \tau^{2} \sim \Nor(\that_{o}, \sigma^{2}_{o} + \tau^{2})& \\
+  &\phantom{H_{0}\colon} \tau^{2} = 0& &&
+  &\phantom{H_{0}\colon} f(\tau^{2}) = \Be\left\{\alpha = \sigma^{2}_{o}/(\sigma^{2}_{o} +
+    2\tau^{2}), x, y\right\}
+    (2\sigma^{2}_{o})/(2\tau^{2} + \sigma^{2})^{2}&
+    %     f(\tau^{2}) = f\{\tau^{2} = (1/\alpha - 1)\, (\sigma^{2}_{o}/2)\}\{\sigma^{2}_{o}/(2\alpha^{2})\}&
+\end{align*}
+in the hierachical framework. % Under $H_{1}$ one may also assign a prior
+% distribution to $\tau^{2}$ which must satisfy the
+% conditions~\eqref{eq:matchCond} as for the matching posteriors.
+The Bayes factor thus compares the plausibility of the replication data under
+the hypothesis $H_{0}$ that the global effect size $\theta_{*}$ is zero and that
+there is no effect size heterogeneity, relative to the plausibility of the data
+under the hypothesis $H_{1}$ that $\theta_{*}$ follows the posterior based on
+the original data and an initial flat prior for $\theta_{*}$. Setting the
+heterogenetiy variance $\tau^2 = 0$ under $H_1$ produces the standard
+replication Bayes factor under normality from~\eqref{eq:bfr}.
+
+The Bayes factor~\eqref{eq:bfalpha} testing $H_{\text{c}}\colon \alpha = 1$ to
+$H_{\text{d}}\colon \alpha = 0$ can be obtained in the hierarchical framework by
+contrasting
+\begin{align*}
+  &H_{\text{d}}\colon \theta_{*} \sim \Nor(0, \kappa^{2}), \tau^{2} = 0&
+  &\text{to}&
+  &H_{\text{c}} \colon \theta_{*} \sim \Nor(s\,\that_{o}, s\,\sigma^{2}_{o}), \tau^{2} = 0&
+\end{align*}
+with $s = (\kappa^{2}/\sigma^{2}_{o})/\{1 + (\kappa^{2}/\sigma^{2}_{o})\}$.
+The Bayes factor hence compares the plausibility of the replication data under
+the initial unit-information prior relative to plausibility of the replication
+data under the unit-information prior updated by the original data, assuming no
+heterogeneity under either hypothesis. Finally, the Bayes
+factor~\eqref{eq:bfdcrandom} testing $H_{\text{c}}\colon \alpha = 1$ vs.
+$H_{\text{d}}\colon \alpha \sim \Be(1, y)$ corresponds to testing
+\begin{align*}
+  &H_{\text{d}}\colon \tau^{2} = 0&
+  &\text{to}&
+  &H_{\text{c}} \colon f(\tau^{2}) = \Be\left\{\alpha = \sigma^{2}_{o}/(\sigma^{2}_{o} +
+    2\tau^{2}), 1, y\right\}
+    (2\sigma^{2}_{o})/(2\tau^{2} + \sigma^{2})^{2}
+  % f\{\tau^{2} = (1/\alpha - 1)\, (\sigma^{2}_{o}/2)\}\{\sigma^{2}_{o}/(2\alpha^{2})\} &
+\end{align*}
+in the hierarchical framework.
 
 
 \subsection{Design}
 
 Assume now that the replication study has not yet been conducted and we want to
 determine its sample size. In the case of the replication Bayes factor under
-normality, \citet{Pawel2020b} derived the probability of replication success in
-closed form under $H_{0}$ and $H_{1}$. Based on their result, standard Bayesian
-design analysis \citep{Weiss1997, DeSantis2004, Schoenbrodt2017} can be
-conducted to determine the appropriate replication sample size. For the
-generalized replication Bayes factor~\eqref{eq:bf01}, numerical integration or
-simulation is required to compute the probability of replication success as the
-marginal likelihood is not available in closed form under $H_{1}$.
+normality~\eqref{eq:bfr}, \citet{Pawel2020b} derived the probability of
+replication success in closed form under $H_{0}$ and $H_{1}$. Based on their
+result, standard Bayesian design analysis \citep{Weiss1997, DeSantis2004,
+  Schoenbrodt2017} can be conducted to determine the appropriate replication
+sample size. For the generalized replication Bayes factor~\eqref{eq:bf01},
+numerical integration or simulation is required to compute the probability of
+replication success as the marginal likelihood is not available in closed form
+under $H_{1}$.
 
 It is also possible to derive the probability of replication success
-analytically for the power parameter Bayes factor~\eqref{eq:bfalpha}. With some
-algebra, one can show that $\BF_{\text{dc}} \leq \gamma$ is equivalent to
+analytically for the simple-simple power parameter Bayes
+factor~\eqref{eq:bfalpha}. With some algebra, one can show that
+$\BF_{\text{dc}} \leq \gamma$ is equivalent to
 % \begin{align*}
 %   2\log\gamma - \log\left(\frac{\sigma^{2}_{r} + s  \sigma^{2}_{o}}{
 %   \sigma^{2}_{r} + \kappa^{2}}\right)
@@ -1311,36 +1399,6 @@ time, it seems that the probability for finding misleading evidence for
 $H_{\text{c}}$ cannot be reduced below around 5\% which might undesirably high
 for certain applications.
 
-\subsection{Connection to hypothesis testing in hierarchical models}
-As with parameter estimation, it is also of interest to know whether there is a
-correspondence between hypothesis tests in the power prior and the hierarchical
-modeling frameworks. Concerning the generalized replication Bayes factor
-from~\eqref{eq:bf01} testing $H_{0} \colon \theta = 0$ vs.
-$H_{1} \colon \theta \sim \Nor(\that_{o}, \sigma^{2}_{o}/\alpha)$, it is
-straightforward to show that it matches with the Bayes factor contrasting
-\begin{align*}
-  &H_{0}\colon \theta_{*} = 0& &\text{to}&
-  &H_{1} \colon \theta_{*} \given \tau^{2} \sim \Nor(\that_{o}, \sigma^{2}_{o} + \tau^{2})& \\
-  &\phantom{H_{0}\colon} \tau^{2} = 0& &&
-  &\phantom{H_{0}\colon}\tau^{2} = (1/\alpha - 1)\, (\sigma^{2}_{o}/2)&
-\end{align*}
-in the hierachical framework. Under $H_{1}$ one may also assign a prior
-distribution to $\tau^{2}$ which must satisfy the
-conditions~\eqref{eq:matchCond} as for the matching posteriors. The Bayes factor
-thus quantifies the plausibility of the hypothesis $H_{0}$ that the global
-effect size $\theta_{*}$ is zero and that there is no effect size heterogeneity,
-relative to the hypothesis $H_{1}$ that $\theta_{*}$ follows the posterior based
-on the original data and an initial flat prior for $\theta_{*}$.
-
-The Bayes factor~\eqref{eq:bfalpha} testing $H_{\text{c}}\colon \alpha = 1$ to
-$H_{\text{d}}\colon \alpha = 0$ can be obtained in the hierarchical framework by
-contrasting
-\begin{align*}
-  &H_{\text{d}}\colon \theta_{*} \sim \Nor(0, \kappa^{2}), \tau^{2} = 0&
-  &\text{to}&
-  &H_{\text{c}} \colon \theta_{*} \sim \Nor(s\,\that_{o}, s\,\sigma^{2}_{o}), \tau^{2} = 0& \\
-\end{align*}
-with $s = (\kappa^{2}/\sigma^{2}_{o})/\{1 + (\kappa^{2}/\sigma^{2}_{o})\}$.
 
 \section{Discussion}
 We showed how the power prior framework can be used for design and analysis of
@@ -1356,8 +1414,10 @@ difficult to do learn about the power parameter from two studies alone. Failed
 replication efforts (in terms of null hypothesis testing) have led many to argue
 that researchers should shift their focus to effect size comparison. Our results
 show that in order to obtain conclusive evidence for effect size compatibility,
-extremely price estimates are required, which likely is more resource intensive
-than obtaining conclusive evidence for testing a null hypothesis.
+regardless whether power prior or hierarchical modeling frameworks are used,
+highly precise effect estimates are required. Obtaining high enough estimation
+accuracy is likely is more resource intensive than obtaining conclusive evidence
+for testing a null hypothesis. \dots
 %     , often more difficult than to find evidence
 % against a null hypothesis (especially when data are noisy and when the samples
 % size is small).
