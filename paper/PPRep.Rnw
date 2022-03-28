@@ -1066,7 +1066,7 @@ effect size $\tilde{\theta}$. For instance, in the example from before we have
 an original effect estimate $\that_{o} = \Sexpr{round(to, 2)}$ and standard
 error $\sigma_{o} = \Sexpr{round(so, 2)}$. The bound~\eqref{eq:boundsimple} is
 minimized for a true effect size of
-$ \tilde{\theta} = (\that_{o})/\{1 - (s \sigma^{2}_{o})/\kappa^{2}\} = \Sexpr{round(trueMin, 2)}$,
+$ \tilde{\theta} = (\that_{o})/\{1 - (s \sigma^{2}_{o})/\kappa^{2}\} = \Sexpr{round(trueESmin, 2)}$,
 so the most extreme level we can obtain is
 $\BF_{\text{dc}}^{*} = \Sexpr{formatBF(bfBound)}$. Even in an infinitely precise
 replication study, we cannot find more evidence for $H_{\text{c}}$.

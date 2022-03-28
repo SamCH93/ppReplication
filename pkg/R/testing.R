@@ -190,21 +190,7 @@ bfPPalpha <- function(tr, sr, to, so, y = 2, uv = NA, ...) {
 
         ## marginal density under H0
         ## integrating likelihood over alpha|H1 ~ Beta(1, y) prior
-        intFun <- function(alpha) {
-            stats::dnorm(x = tr, mean = to, sd = sqrt(sr^2 + so^2/alpha)) *
-                stats::dbeta(x = alpha, shape1 = 1, shape2 = y)
-        }
-        res <- try(stats::integrate(f = intFun, lower = 0, upper = 1,
-                                    ... = ...)$value)
-        if (class(res) == "try-error") {
-            warnString <- paste("Numerical problems integrating out power parameter.",
-                                "\nTry adjusting integration options with ... argument.",
-                                "\nSee ?stats::integrate for available options.")
-            warning(warnString)
-            fH0 <- NaN
-        } else {
-            fH0 <- res
-        }
+        fH0 <- margLik(tr = tr, to = to, sr = sr, so = so, x = 1, y = y)
     }
 
     ## compute BF
