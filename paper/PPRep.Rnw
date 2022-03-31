@@ -428,10 +428,24 @@ margplotDF$trFormat <- paste0("{hat(theta)[italic('r')*", margplotDF$rnumber,
                               "}*',' ~ sigma[italic('r')*", margplotDF$rnumber,
                               "] == ", round(margplotDF$sr, 2))
 
+## compute posterior of effect size without using original data
+thetaplotDF2 <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    pDens <- dnorm(x = thetaseq, mean = tr[i], sd = sr[i])
+    out <- data.frame(x = thetaseq, density = pDens, rnumber = rnumber[i],
+                      parameter = "'Effect size' ~ theta", tr = tr[i], sr = sr[i])
+    return(out)
+}))
+thetaplotDF2$trFormat <- paste0("{hat(theta)[italic('r')*", thetaplotDF2$rnumber,
+                                "] == ", round(thetaplotDF2$tr, 2),
+                                "}*',' ~ sigma[italic('r')*",
+                                thetaplotDF2$rnumber, "] == ",
+                                round(thetaplotDF2$sr, 2))
+
 ## plot marginals
 plotBot <- ggplot(data = margplotDF, aes(x = x, y = density, color = trFormat)) +
     facet_wrap(~ parameter, scales = "free", labeller = label_parsed,
                strip.position = "bottom") +
+    geom_line(data = thetaplotDF2, lty = 2, alpha = 0.5, size = 0.4) +
     geom_line(alpha = 0.9) +
     theme_bw() +
     labs(x = NULL, y = "Marginal posterior density", color = "") +
@@ -445,6 +459,8 @@ ggpubr::ggarrange(plotTop, plotBot, ncol = 1, heights = c(0.5, 0.5))
 \caption{Bayesian analysis of three replication studies from the replication
   project by \citet{Protzko2020}. Shown are joint (top) and marginal (bottom)
   posterior distributions of effect size $\theta$ and power parameter $\alpha$.
+  The dashed lines indicate posterior density for the effect size when the
+  replication data are analysed without incorporating the original data.
   A power prior for the effect size $\theta$ is constructed from the original
   effect estimate $\that_{o} = \Sexpr{round(to, 2)}$ (with standard error
   $\sigma_{o} = \Sexpr{round(so, 2)}$) and an initial flat prior
@@ -566,21 +582,43 @@ heterogeneity measure $I^{2} = \tau^{2}/(\tau^{2} + \sigma^{2}_{o})$
 \end{align*}
 see also Figure~\ref{fig:I2}. We see that there is an almost linear relationship
 betwen the two. A useful heuristic to connect power priors to hierarchical
-models is thus $\alpha \approx 1 - I^{2}$.
+models is thus $\alpha \approx 1 - I$.
 
 \begin{figure}[!htb]
 << "I2plot", fig.height = 3 >>=
 ## show relationship between I^2 and alpha
-I2seq <- seq(from = 0, to = 1, length.out = 500)
+I2seq <- seq(from = 0, to = 1, length.out = 1000)
 alphaseq <- (1 - I2seq)/(1 + I2seq)
 plotDF <- data.frame(I2 = I2seq, alpha = alphaseq, tau2 = so^2/2*(1/alphaseq - 1))
-ggplot(data = plotDF, aes(x = I2, y = alpha)) +
+## ggplot(data = plotDF, aes(x = I2, y = alpha)) +
+##     ## geom_abline(intercept = 1, slope = -1, lty = 2, alpha = 0.3) +
+##     geom_line() +
+##     labs(x = bquote(italic("I")^2), ## bquote(I^2 == frac(tau^2, tau^2 + sigma["o"]^2)),
+##          y = bquote(alpha)) +
+##     coord_fixed() +
+##     theme_bw() +
+##     theme(panel.grid.minor = element_blank())
+
+
+## plot with I and I^2
+plotDF$x <- plotDF$I2
+plotDF$type <- "italic('I')^2"
+plotDF2 <- plotDF
+plotDF2$x <- sqrt(plotDF$x)
+plotDF2$type <- "italic('I')"
+plotDF3 <- rbind(plotDF, plotDF2)
+plotDF3$type <- factor(plotDF3$type, levels = c("italic('I')^2", "italic('I')"))
+ggplot(data = plotDF3, aes(x = x, y = alpha)) +
+    geom_abline(intercept = 1, slope = -1, alpha = 0.1) +
     geom_line() +
-    labs(x = bquote(I^2), ## bquote(I^2 == frac(tau^2, tau^2 + sigma["o"]^2)),
-         y = bquote(alpha)) +
-    coord_fixed() +
+    facet_wrap(~ type, labeller = label_parsed,
+               strip.position = "bottom") +
     theme_bw() +
-    theme(panel.grid.minor = element_blank())
+    coord_fixed() +
+    labs(x = NULL, y = bquote(alpha)) +
+    theme(legend.position = "top", panel.grid.minor = element_blank(),
+          strip.background.x = element_blank(), strip.placement = "outside")
+
 @
 \caption{Relative heterogeneity $I^{2} = \tau^{2}/(\tau^{2} + \sigma^{2}_{o})$
   of hierarchical model and power parameter $\alpha$ from power prior model
