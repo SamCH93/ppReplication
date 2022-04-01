@@ -234,56 +234,6 @@ choice in the literature \citep{Ibrahim2015}. % However, we note that if $\alpha
 
 \section{Parameter estimation}
 \label{sec:parameter-estimation}
-<< "posterior-distribution" >>=
-## functoin to format BF
-.formatBF_ <- function(BF, digits = "default") {
-    ## check inputs
-    stopifnot(
-        length(BF) == 1,
-        is.numeric(BF),
-        (is.finite(BF) && 0 < BF) || is.na(BF),
-
-        length(digits) == 1,
-        (is.character(digits) && digits == "default") ||
-        (is.numeric(digits) && 0 <= digits)
-    )
-    ## return NA if input NA/nan
-    if (is.na(BF) || is.nan(BF))
-        result <- NA
-    else {
-        ## format BF
-        if (digits == "default") {
-            if (BF < 1/1000)
-                result <- "< 1/1000"
-            if ((BF >= 1/1000) & (BF <= 1/10))
-                result <- paste0("1/", as.character(round(1/BF)))
-            if ((BF > 1/10) & (BF < 1))
-                result <- paste0("1/", as.character(round(1/BF, digits = 1)))
-            if ((BF < 10) & (BF >= 1))
-                result <- as.character(round(BF, digits = 1))
-            if ((BF >= 10) & (BF <= 1000))
-                result <- as.character(round(BF))
-            if (BF > 1000)
-                result <- "> 1000"
-        } else {
-            if (BF < 1)
-                result <- paste0("1/", as.character(round(1/BF, digits = digits)))
-            else
-                result <- as.character(round(BF, digits = digits))
-        }
-        ## when 1/1 return 1
-        if (result == "1/1") result <- "1"
-    }
-    return(result)
-}
-formatBF <- Vectorize(FUN = .formatBF_)
-
-## functions are now in pkg
-library(ppRep)
-@
-
-% asdsad
-
 Assuming a beta prior for $\alpha$ and conditioning on the replication data
 leads to the posterior distribution
 \begin{align}
@@ -332,22 +282,35 @@ while for the effect size $\theta$, we have
 \end{align*}
 
 
-<< "example-posterior" >>=
-## TODO find better / real example
+<< "settings-data" >>=
+## Packages
+library(ppRep) # package containing power prior routines
+library(ggplot2) # plotting
+library(colorspace) # colors
+library(xtable) # LaTeX tables
+library(dplyr) # easier data manipulation
+
+## Protzko data set is now included in ReplicationSuccess package
 data(protzko2020, package = "ReplicationSuccess")
 ex <- "Labels"
 dat <- subset(protzko2020, experiment == ex)
+
+## Original data
 to <- dat$smd[dat$type == "original"]
-to <- to + .Machine$double.eps ## add a tiny amount so that correctly rounded (because 0.205)
+## add a tiny amount so that correctly rounded (as 0.205 is rounded down to 2.0 ....)
+to <- to + .Machine$double.eps
 no <- dat$n[dat$type == "original"]
+
+## Replication data
 tr <- dat$smd[dat$type == "external-replication"]
-tr[3] <- tr[3] + .Machine$double.eps ## add a tiny amount so that correctly rounded (because 0.205)
+## add a tiny amount so that correctly rounded (as 0.205 is rounded down to 2.0 ....)
+tr[3] <- tr[3] + .Machine$double.eps
 so <- dat$se[dat$type == "original"]
 sr <- dat$se[dat$type == "external-replication"]
 nr <- dat$n[dat$type == "external-replication"]
 rnumber <- c(1, 3, 2)
 
-## uniform prior for alpha
+## Uniform prior for alpha
 x <- 1
 y <- 1
 @
@@ -368,15 +331,15 @@ sizes.
 
 
 \begin{figure}[!htb]
-<< "fig-example-posterior", fig.height = 6 >>=
-## grid for posterior
+<< "figure-posterior-distribution", fig.height = 6 >>=
+## Parameter grid to compute posterior density for
 nalpha <- 200
 ntheta <- 200
 alphaseq <- seq(0, 1, length.out = nalpha)
 thetaseq <- seq(0, 0.6, length.out = ntheta)
 parGrid <- expand.grid(alpha = alphaseq, theta = thetaseq)
 
-## compute joint posterior
+## Joint posterior
 jointplotDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
     pDens <- postPP(theta = parGrid$theta, alpha = parGrid$alpha, tr = tr[i],
                     sr = sr[i], to = to, so = so, x = x, y = y)
@@ -391,9 +354,7 @@ jointplotDF$trFormat <- paste0("{hat(theta)[italic('r')*", jointplotDF$rnumber,
                                "}*',' ~ sigma[italic('r')*", jointplotDF$rnumber,
                                "] == ", round(jointplotDF$sr, 2))
 
-## plot posterior
-library(ggplot2)
-library(colorspace)
+## Plot of joint posterior
 plotTop <- ggplot(data = jointplotDF, aes(x = theta, y = alpha, fill = density)) +
     facet_wrap(~ trFormat,
                labeller = label_parsed) +
@@ -406,8 +367,7 @@ plotTop <- ggplot(data = jointplotDF, aes(x = theta, y = alpha, fill = density))
     theme_minimal() +
     theme(panel.grid.minor = element_blank())
 
-
-## compute marginal posteriors
+## Marginal posteriors
 alphaplotDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
     pDens <- postPPalpha(alpha = alphaseq, tr = tr[i], sr = sr[i], to = to,
                          so = so, x = x, y = y)
@@ -428,7 +388,7 @@ margplotDF$trFormat <- paste0("{hat(theta)[italic('r')*", margplotDF$rnumber,
                               "}*',' ~ sigma[italic('r')*", margplotDF$rnumber,
                               "] == ", round(margplotDF$sr, 2))
 
-## compute posterior of effect size without using original data
+## Posterior of effect size without using original data
 thetaplotDF2 <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
     pDens <- dnorm(x = thetaseq, mean = tr[i], sd = sr[i])
     out <- data.frame(x = thetaseq, density = pDens, rnumber = rnumber[i],
@@ -441,7 +401,7 @@ thetaplotDF2$trFormat <- paste0("{hat(theta)[italic('r')*", thetaplotDF2$rnumber
                                 thetaplotDF2$rnumber, "] == ",
                                 round(thetaplotDF2$sr, 2))
 
-## plot marginals
+## Plot of marginal posteriors
 plotBot <- ggplot(data = margplotDF, aes(x = x, y = density, color = trFormat)) +
     facet_wrap(~ parameter, scales = "free", labeller = label_parsed,
                strip.position = "bottom") +
@@ -454,6 +414,7 @@ plotBot <- ggplot(data = margplotDF, aes(x = x, y = density, color = trFormat)) 
           strip.background.x = element_blank(), strip.placement = "outside",
           legend.text.align = 0)
 
+## Combine all plots
 ggpubr::ggarrange(plotTop, plotBot, ncol = 1, heights = c(0.5, 0.5))
 @
 \caption{Bayesian analysis of three replication studies from the replication
@@ -585,30 +546,23 @@ betwen the two. A useful heuristic to connect power priors to hierarchical
 models is thus $\alpha \approx 1 - I$.
 
 \begin{figure}[!htb]
-<< "I2plot", fig.height = 3 >>=
-## show relationship between I^2 and alpha
+<< "figure-I2-alpha", fig.height = 3 >>=
+## Compute alpha from I^2
 I2seq <- seq(from = 0, to = 1, length.out = 1000)
 alphaseq <- (1 - I2seq)/(1 + I2seq)
-plotDF <- data.frame(I2 = I2seq, alpha = alphaseq, tau2 = so^2/2*(1/alphaseq - 1))
-## ggplot(data = plotDF, aes(x = I2, y = alpha)) +
-##     ## geom_abline(intercept = 1, slope = -1, lty = 2, alpha = 0.3) +
-##     geom_line() +
-##     labs(x = bquote(italic("I")^2), ## bquote(I^2 == frac(tau^2, tau^2 + sigma["o"]^2)),
-##          y = bquote(alpha)) +
-##     coord_fixed() +
-##     theme_bw() +
-##     theme(panel.grid.minor = element_blank())
 
+## Prepare DF for plotting
+I2DF <- data.frame(I2 = I2seq, alpha = alphaseq, tau2 = so^2/2*(1/alphaseq - 1))
+I2DF$x <- I2DF$I2
+I2DF$type <- "italic('I')^2"
+IDF <- I2DF
+IDF$x <- sqrt(I2DF$x)
+IDF$type <- "italic('I')"
+plotDF <- rbind(I2DF, IDF)
+plotDF$type <- factor(plotDF$type, levels = c("italic('I')^2", "italic('I')"))
 
-## plot with I and I^2
-plotDF$x <- plotDF$I2
-plotDF$type <- "italic('I')^2"
-plotDF2 <- plotDF
-plotDF2$x <- sqrt(plotDF$x)
-plotDF2$type <- "italic('I')"
-plotDF3 <- rbind(plotDF, plotDF2)
-plotDF3$type <- factor(plotDF3$type, levels = c("italic('I')^2", "italic('I')"))
-ggplot(data = plotDF3, aes(x = x, y = alpha)) +
+## Plot alpha as a function of I and I^2
+ggplot(data = plotDF, aes(x = x, y = alpha)) +
     geom_abline(intercept = 1, slope = -1, alpha = 0.1) +
     geom_line() +
     facet_wrap(~ type, labeller = label_parsed,
@@ -711,16 +665,16 @@ see that the posteriors match if we assing a
 \end{align}
 prior to $\tau^{2}$.
 \begin{figure}[!htb]
-<< "corresponding-priors", fig.height = 5 >>=
-## corresponding heterogeneity variance priors for alpha ~ Beta(a, b)
+<< "figure-corresponding-priors", fig.height = 5 >>=
+## Function for computing prior density of tau^2 based on the corresponding
+## Beta(a, b) prior on power parameter alpha
 ftau2 <- function(tau2, a, b, so) {
     dbeta(x = so^2/(2*tau2 + so^2), shape1 = a, shape2 = b) *
         2*so^2/(2*tau2 + so^2)^2
 }
 
-## compute priors for a grid of Beta priors
-paramsGrid <- data.frame(a = c(1, 2, 1),
-                         b = c(1, 1, 2))
+## Compute prior density of tau^2 for different Beta priors on alpha
+paramsGrid <- data.frame(a = c(1, 2, 1), b = c(1, 1, 2))
 aseq <- seq(0, 1, length.out = 500)
 tau2seq <- seq(0, 0.1, length.out = 500)^2
 alphaDF <- do.call("rbind", lapply(X = seq(1, nrow(paramsGrid)), FUN = function(i) {
@@ -743,7 +697,7 @@ plotDF <- rbind(alphaDF, tau2DF)
 alphaDF$ylabFac <- factor(x = alphaDF$ylab, levels = unique(plotDF$ylab))
 tau2DF$ylabFac <- factor(x = tau2DF$ylab, levels = unique(plotDF$ylab))
 
-## plot beta priors for alpha and corresponding priors for tau^2
+## Plot beta priors for alpha and corresponding priors for tau^2
 plotalpha <- ggplot(data = alphaDF, aes(x = x, y = density)) +
     facet_grid(ylabFac ~ ., labeller = label_parsed, scales = "free",
                switch = "x") +
@@ -765,43 +719,9 @@ plottau <- ggplot(data = tau2DF, aes(x = x, y = density)) +
     theme(panel.grid.minor = element_blank(), strip.text.y = element_blank(),
           strip.background.x = element_blank(), strip.placement = "outside")
 
+## Combine plots
 ggpubr::ggarrange(plottau, plotalpha, ncol = 2, align = "h")
-
-## reestimate marginal posteriors under hierarchical model
-normConstHierarch <- function(to, tr, so, sr, x, y) {
-   ## TODO implement normalization
-}
-margPostThetarHierarch_ <- function(thetar, to, tr, so, sr, x, y,
-                                    normConst = 1) {
-    intFun <- function(tau2) {
-        ## marginal posterior conditional on tau2
-        dnorm(x = thetar,
-              mean = (tr/sr^2 + to/(2*tau2 + so^2))/(1/sr^2 + 1/(2*tau2 + so^2)),
-              sd = sqrt(1/(1/sr^2 + 1/(2*tau2 + so^2)))) *
-            ## marginal posterior of tau2 (up to proportionality)
-            exp(-0.5*(tr - to)^2/(so^2 + sr^2 + 2*tau2)) /
-            sqrt(so^2 + sr^2 + 2*tau2) *
-            dbeta(x = so^2/(2*tau2 + so^2), shape1 = x, shape = y) *
-            2*so^2/(2*tau2 + so)^2
-    }
-    res <- try(integrate(f = intFun, lower = 0, upper = Inf)$value)
-    if (class(res) == "try-error") {
-        out <- NaN
-    } else {
-        out <- res / normConst
-    }
-    return(out)
-}
-margPostThetarHierarch <- Vectorize(FUN = margPostThetarHierarch_)
-## thetarseq <- seq(0, 0.6, length.out = 1000)
-## plot(thetarseq,
-##      margPostThetarHierarch(thetar = thetarseq, to = to, tr = tr[1], so = so,
-##                             sr = sr[1], x = 1, y = 1), type = "l")
-## abline(v = 0.2)
 @
-
-% hi
-
 \caption{Beta priors on power parameter $\alpha \sim \Be(x, y)$ (right) and
   corresponding priors on heterogeneity variance $\tau^2$ (left) that lead to
   matching marginal posteriors for the effect sizes $\theta$ and $\theta_{r}$.
@@ -954,40 +874,68 @@ obtained from setting $\alpha = 1$.
     $H_{\text{d}}\colon \alpha < 1$ to $H_{\text{c}}\colon \alpha = 1$.\\}
   \label{tab:hypothesis}
 
-<< "bf-testing", results = "asis" >>=
-## compute BFs for effect sizes and power parameter
-k <- sqrt(2)
-x <- 1
-y <- 1
-xc <- 2
-yd <- 2
+<< "table-Bayes-factors", results = "asis" >>=
+## Function to nicely format Bayes factors
+.formatBF_ <- function(BF, digits = "default") {
+    ## check inputs
+    stopifnot(
+        length(BF) == 1,
+        is.numeric(BF),
+        (is.finite(BF) && 0 < BF) || is.na(BF),
+
+        length(digits) == 1,
+        (is.character(digits) && digits == "default") ||
+        (is.numeric(digits) && 0 <= digits)
+    )
+    ## return NA if input NA/NaN
+    if (is.na(BF) || is.nan(BF))
+        result <- NA
+    else {
+        ## format BF
+        if (digits == "default") {
+            if (BF < 1/1000)
+                result <- "< 1/1000"
+            if ((BF >= 1/1000) & (BF <= 1/10))
+                result <- paste0("1/", as.character(round(1/BF)))
+            if ((BF > 1/10) & (BF < 1))
+                result <- paste0("1/", as.character(round(1/BF, digits = 1)))
+            if ((BF < 10) & (BF >= 1))
+                result <- as.character(round(BF, digits = 1))
+            if ((BF >= 10) & (BF <= 1000))
+                result <- as.character(round(BF))
+            if (BF > 1000)
+                result <- "> 1000"
+        } else {
+            if (BF < 1)
+                result <- paste0("1/", as.character(round(1/BF, digits = digits)))
+            else
+                result <- as.character(round(BF, digits = digits))
+        }
+        ## when 1/1 return 1
+        if (result == "1/1") result <- "1"
+    }
+    return(result)
+}
+formatBF <- Vectorize(FUN = .formatBF_)
+
+## Parameters for Bayes factors
+k <- sqrt(2) # unit-information standard deviation
+x <- 1 # uniform prior for effect size BF
+y <- 1 # uniform prior for effect size BF
+yd <- 2 # monotonically decreasing prior for power parameter BF
+
+## Compute BFs for effect sizes and power parameter
 bfDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
-    ## compute suite of BFs for power prior models
     bf01 <- bfPPtheta(tr = tr[i], sr = sr[i], to = to, so = so, x = x, y = y)
     bfr <- bfPPtheta(tr = tr[i], sr = sr[i], to = to, so = so, alpha = 1)
     bfdc <- bfPPalpha(tr = tr[i], sr = sr[i], to = to, so = so, uv = k^2)
-
-    ## compute BFdc with random alpha
-    ## fHd <- integrate(f = function(alpha) {
-    ##     dnorm(x = tr[i], mean = to, sd = sqrt(sr[i]^2 + so^2/alpha)) *
-    ##         dbeta(x = alpha, shape1 = 1, shape2 = yd)
-    ## }, lower = 0, upper = 1)$value
-    ## ## fHc <- integrate(f = function(alpha) {
-    ## ##     dnorm(x = tr[i], mean = to, sd = sqrt(sr[i]^2 + so^2/alpha)) *
-    ## ##         dbeta(x = alpha, shape1 = xc, shape2 = 1)
-    ## ## }, lower = 0, upper = 1)$value
-    ## fHc <- dnorm(x = tr[i], mean = to, sd = sqrt(sr[i]^2 + so^2))
-    ## bfdcRandom <- fHd/fHc
     bfdcRandom <- bfPPalpha(tr = tr[i], sr = sr[i], to = to, so = so, y = yd)
-
     out <- data.frame(number = rnumber[i], tr = tr[i], sr = sr[i], bf = bf01,
                       bfr = bfr, bfdc = bfdc, bfdcRandom = bfdcRandom)
     return(out)
 }))
 
-## create nice table
-library(xtable)
-library(dplyr)
+## Create LaTeX table
 dfTab <- bfDF %>%
     mutate(bf = formatBF(bf),
            bfr = formatBF(bfr),
@@ -998,11 +946,6 @@ dfTab <- bfDF %>%
            number = as.integer(number)) %>%
     arrange(tr)
 xtab <- xtable(dfTab)
-## colnames(xtab) <- c("$\\hat{\\theta}_r$",
-##                     "$\\sigma_r$",
-##                     "$\\BF_{01}(\\hat{\\theta}_r \\given \\alpha \\sim \\Be(1, 1))$",
-##                     "$\\BF_{01}(\\hat{\\theta}_r \\given \\alpha = 1)$",
-##                     "$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given \\theta \\sim \\Nor(0, 2))$")
 colnames(xtab) <- c("",
                     "$\\hat{\\theta}_r$",
                     "$\\sigma_r$",
@@ -1010,8 +953,6 @@ colnames(xtab) <- c("",
                     "$\\BF_{01}(\\hat{\\theta}_r \\given \\alpha = 1)$",
                     paste0("$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given \\kappa^2 =",
                            k^2, ")$"),
-                    ## paste0("$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given x =", xc,
-                    ##        ", y = ", yd, ")$")
                     paste0("$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given y = ",
                            yd, ")$"))
 align(xtab) <- rep("c", length(colnames(xtab)) + 1)
@@ -1055,24 +996,14 @@ variance. As the replication sample size goes to infinity ($n_{r} \to \infty$),
 the estimate will converge in probability to the true effect size, and the
 standard error will go to zero.
 
-<< "bf-bound" >>=
-## compute bound on the Bayes factor
+<< "asymptotic-Bayes-factor" >>=
+## Compute bound for the Bayes factor
 k <- sqrt(2)
 g <- k^2/so^2
 s <- g/(1 + g)
 trueESmin <- to ## minimized for true effect size = original effect estimate
 bfBound <- dnorm(x = trueESmin, mean = 0, sd = k)/
     dnorm(x = trueESmin, mean = s*to, sd = sqrt(s)*so)
-
-## ## bf with sr = 0 as a function of true effect size
-## trueES <- seq(to*0.9, to*1.1, length.out = 1000)
-## bfseq <- dnorm(x = trueES, mean = 0, sd = k)/
-##     dnorm(x = trueES, mean = s*to, sd = sqrt(s)*so)
-## plot(trueES, bfseq, type = "l", log = "y", xlab = bquote(tilde(theta)),
-##      ylab = bquote(BF["dc"]^"*"))
-## abline(v = trueESmin, lty = 2)
-## abline(h = dnorm(x = trueESmin, mean = 0, sd = k)/
-##            dnorm(x = trueESmin, mean = s*to, sd = sqrt(s)*so), lty = 2)
 @
 
 %     Assuming that the original estimate was not zero ($\that_{o} \neq 0$), t
@@ -1242,8 +1173,8 @@ approximation $n_{r} \approx 4/\sigma^{2}_{r}$.
 
 
 \begin{figure}[!htb]
-<< "design", fig.height = 4.5 >>=
-## probability of relpication success
+<< "Bayes-factor-design-analysis", fig.height = 4.5 >>=
+## Function to compute probability of replication success
 powerFun <- function(sr, to, so, k, level, mi, vi) {
     s <- k^2/so^2 / (1 + k^2/so^2)
     X <- (sr^2 + k^2) * (sr^2 + s * so^2) / (k^2 - s * so^2) *
@@ -1254,11 +1185,10 @@ powerFun <- function(sr, to, so, k, level, mi, vi) {
     return(p)
 }
 
-## compute proability of replication success for a grid of replication
-## standard errors
+## Compute proability of replication success for a grid of relative
+## variances (c = so^2/sr^2 =~ nr/no)
 cSeq <- exp(seq(log(1/12), log(12), length.out = 1000))
 cbks <- c(1/10, 1/3, 1, 3, 10)
-
 level <- 1/10
 plotDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
     to <- tr[i]
@@ -1302,48 +1232,8 @@ plotDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
                               round(outDF$so, 2))
     return(outDF)
 }))
-## do.call("rbind", lapply(X = seq(1, length(to)), FUN = function(i) {
-##     to <- to[i]
-##     so <- to[i]
-##     ## mean and variance under Hd and Hc
-##     md <- 0
-##     vd <- srSeq^2 + k^2
-##     s <- k^2/so^2 / (1 + k^2/so^2)
-##     mc <- s*to
-##     vc <- srSeq^2 + s*so^2
-##     ## power to achieve BF < level
-##     p1Hd <- powerFun(sr = srSeq, to = to, so = so, k = k, level = level,
-##                      mi = md, vi = vd)
-##     p1Hc <- powerFun(sr = srSeq, to = to, so = so, k = k, level = level,
-##                      mi = mc, vi = vc)
-##     outDF1 <- rbind(data.frame(p = p1Hd, level = level, type = "italic(H['d'])",
-##                                sr = srSeq, c = cSeq, to = to, so = so,
-##                                direction = "<="),
-##                     data.frame(p = p1Hc, level = level, type = "italic(H['c'])",
-##                                sr = srSeq, c = cSeq, to = to, so = so,
-##                                direction = "<="))
-##     ## power to achieve BF > 1/level
-##     p2Hd <- 1 - powerFun(sr = srSeq, to = to, so = so, k = k, level = 1/level,
-##                          mi = md, vi = vd)
-##     p2Hc <- 1 - powerFun(sr = srSeq, to = to, so = so, k = k, level = 1/level,
-##                          mi = mc, vi = vc)
-##     outDF2 <- rbind(data.frame(p = p2Hd, level = 1/level, type = "italic(H['d'])",
-##                                sr = srSeq, c = cSeq, to = to, so = so,
-##                                direction = ">="),
-##                     data.frame(p = p2Hc, level = 1/level, type = "italic(H['c'])",
-##                                sr = srSeq, c = cSeq, to = to, so = so,
-##                                direction = ">="))
-##     outDF <- rbind(outDF1, outDF2)
-##     outDF$yFacetLab <- paste0("'Pr(BF'['dc']", outDF$direction,
-##                               formatBF(outDF$level),
-##                               "~ '|' ~ italic(H['i']) *", "')'")
-##     outDF$xFacetLab <- paste0("{hat(theta)[italic(o)] ==",
-##                               round(outDF$to, 2),
-##                               "}*', '*sigma[italic(o)] == ",
-##                               round(outDF$so, 2))
-##     return(outDF)
-## }))
 
+## Determine replication standard error such that certain power is achieved
 pow <- 0.8
 ssDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
     to <- tr[i]
@@ -1392,6 +1282,7 @@ ssDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
     return(outDF)
 }))
 
+## Plot power curves and required standard errors
 powbks <- seq(0, 1, 0.2)
 ggplot(data = plotDF, aes(x = c, y = p, color = type)) +
     facet_grid(yFacetLab ~ xFacetLab, labeller = label_parsed,
@@ -1413,11 +1304,6 @@ ggplot(data = plotDF, aes(x = c, y = p, color = type)) +
     theme_bw() +
     theme(panel.grid.minor = element_blank(),
           strip.background.y = element_blank(), strip.placement = "outside")
-
-## check that quadratic forms correctly combined
-## (tr - to*s)^2/(sr^2 + s*so^2) - tr^2/(sr^2 + k^2)
-## (k^2 - s*so^2)/((sr^2 + k^2)*(sr^2 + s*so^2))*
-##     (tr - to*s*(sr^2 + k^2)/(k^2 - s*so^2))^2 + to^2*s^2/(s*so^2 - k^2)
 @
 \caption{Probability of replication success as a function of relative variance
   for the three replications of experiment ``\Sexpr{ex}'' regarded as original

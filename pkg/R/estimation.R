@@ -280,7 +280,7 @@ postPPtheta <- function(theta, tr, sr, to, so, x = 1, y = 1, alpha = NA, ...) {
                       ... = ...)
         if (is.nan(nC)) {
             out <- rep(x = NaN, times = length(theta))
-            return(NaN)
+            return(out)
         }
 
         ## compute marginal posterior
