@@ -102,7 +102,7 @@ opts_chunk$set(fig.height = 4,
                eval = TRUE)
 
 ## should sessionInfo be printed at the end?
-Reproducibility <- FALSE
+Reproducibility <- TRUE
 
 ## Packages
 library(ppRep) # package containing power prior routines
@@ -1919,8 +1919,9 @@ follows a generalized F distribution
 \bibliographystyle{apalikedoiurl}
 \bibliography{bibliography}
 
-<< "sessionInfo", results = Reproducibility >>=
-## print sessionInfo for reproducibility
+<< "sessionInfo", echo = Reproducibility, results = Reproducibility >>=
+## print R sessionInfo to see system information and package versions
+## used to compile the manuscript
 sessionInfo()
 @
 
