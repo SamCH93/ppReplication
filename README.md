@@ -7,7 +7,7 @@ This repository contains R code and other files related to the arXiv preprint
 
 1. Install the `ppRep` package by running from an R session
 ```r
-remotes::install_github("SamCH93/ppRep", , subdir = "pkg")
+remotes::install_github("SamCH93/ppRep", subdir = "pkg")
 ```
 This requires the `remotes` package which is available on CRAN.
 Alternatively, the package can be built and installed by
