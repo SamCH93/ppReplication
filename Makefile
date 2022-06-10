@@ -1,41 +1,33 @@
-## ----------------------------------------------------------------------------
-## Document/Build/Check/Install R package (depends on devtools and roxygen2)
-## Author: Samuel Pawel
-## adapted from Manuela Ott, Sebastian Meyer, Florian Gerber
-## ----------------------------------------------------------------------------
+all: dbuild drun
 
-PACKAGE = ppRep
-VERSION = 0.42
-TAR = $(PACKAGE)_$(VERSION).tar.gz
+# specify same name as in paper/Makefile
+FILE=ppreplication
 
-all: build
+## build docker image (requires root access for docker)
+dbuild: Dockerfile
+	docker build \
+    -t $(FILE) .
 
-description:
-	sed -i -r -- 's/^Version:.*/Version: '$(VERSION)'/g' pkg/DESCRIPTION ;      
-	sed -i -r -- 's/^Date:.*/Date: '`date +'%F'`'/g' pkg/DESCRIPTION ;
-	R -e 'roxygen2::roxygenize("pkg/")'
+## run docker image that produces tex from within docker
+drun: dbuild
+	docker run \
+    --rm \
+	--env FILE=$(FILE) \
+	-v $(CURDIR):/output \
+		$(FILE)
+## compile pdf using LaTeX outside docker
+	mv $(FILE).tex paper/
+	mkdir -p paper/figure
+	mv figure/* paper/figure
+	rmdir figure/
+	cd paper && make pdf2 clean
 
-document: description
-	R -e 'devtools::document(pkg = "pkg/")'
-
-manual: document
-	R -e 'devtools::build_manual(pkg = "pkg/")'
-
-$(TAR): manual
-	R -e 'devtools::build(pkg = "pkg/")'
-
-build: $(TAR)
-
-install: $(TAR)
-	R -e 'devtools::install(pkg = "pkg/", build = FALSE)'
-
-check: $(TAR)
-	R -e 'devtools::check_built(path = "$(TAR)", cran = FALSE)'
-
-cran: $(TAR)
-	R -e 'devtools::check_built(path = "$(TAR)", cran = TRUE, remote = TRUE)'
-
-test:
-	R -e 'devtools::test(pkg = "pkg/")'
-
-.PHONY: all document manual build install check cran description test
+## run docker image that produces pdf from within docker
+drunpdf: dbuild
+	docker run \
+    --rm \
+	--env pdfdocker="true" \
+	--env FILE=$(FILE) \
+	--volume $(CURDIR):/output \
+	$(FILE)
+	mv $(FILE).pdf paper/$(FILE).pdf

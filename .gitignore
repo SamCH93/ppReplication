@@ -45,3 +45,7 @@ vignettes/*.pdf
 *.bbl
 *.blg
 *.log
+
+# directories
+code/
+coverletter/

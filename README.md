@@ -1,32 +1,56 @@
 # Power Priors for Replication Studies
 
-This repository contains R code and other files related to the arXiv preprint
-[XXXX.XXXXX](https://arxiv.org/abs/XXXX.XXXXX).
+This repository contains code and data related to the preprint
+
+Pawel, S., Aust, F., Held, L., and Wagenmakers, E.-J. (2022). Power Priors for
+Replication Studies.
+doi:[10.48550/arXiv.2206.xxxxx](https://doi.org/10.48550/arXiv.2206.xxxxx)
 
 ## Reproducing the results
 
-1. Install the `ppRep` package by running from an R session
-```r
-remotes::install_github("SamCH93/ppRep", subdir = "pkg")
-## for exact version at the time of preprint use 
-## remotes::install_github("SamCH93/ppRep@preprint", subdir = "pkg")
-```
-This requires the `remotes` package which is available on CRAN.
-Alternatively, the package can be built and installed by
-running the following command in the repository root folder in a shell
-```bash
-make build install
-```
+We offer two ways to reproduce the results
 
+### 1. Reproduction with local computational environment (requires R and LaTeX)
 
-2. Install all the dependencies from CRAN by running from an R session
-```r
-install.packages(c("ggplot2", "colorspace", "xtable", "dplyr", "hypergeo" "ReplicationSuccess"))
+First install the required R packages by running in a shell from the root
+directory of the repository
+
+``` sh
+## packages from CRAN
+R -e 'install.packages(read.delim("CRANpackages.txt", header = FALSE)[,1])'
+## requires remotes package
+R -e 'remotes::install_github(repo = "SamCH93/ciCalibrate")'
 ```
 
+Then run
 
-3. Run in the root folder of the repository from a shell
-```bash
+``` sh
 cd paper
 make pdf
 ```
+
+this should reproduce all analyses and output the file `pppooling.pdf` in the
+paper directory.
+
+Although our analysis depends on only few dependencies, this approach may lead
+to different results (or not even compile successfully) in the future if R or an
+R package dependency changes. The R and R package versions which were used in
+our analysis can be seen in the output of the sessionInfo command at the bottom
+of the manuscript in the snapshot of the GitHub repository at the time of
+submission.
+
+### 2. Reproduction within Docker container (requires Docker with root rights)
+
+Run in a shell from the root directory of the repository
+
+``` sh
+make drunpdf
+```
+
+this should output the file `pppooling.pdf` in the paper directory. The Docker
+approach takes a bit longer but reruns our analyses in a Docker container which
+encapsulates the computational environment (R and R package versions) that was
+used in the original analysis. The only way this approach could become
+irreproducible is when the [rocker/verse](https://hub.docker.com/r/rocker/verse)
+base image becomes unavailable and/or the MRAN snapshot of CRAN becomes
+unavailable.

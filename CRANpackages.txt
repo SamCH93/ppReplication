@@ -1,0 +1,8 @@
+knitr
+ggplot2
+colorspace
+xtable
+dplyr
+hypergeo
+ReplicationSuccess
+ggpubr

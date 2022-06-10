@@ -4,8 +4,6 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
-\usepackage{graphics}
-\usepackage[dvipsnames]{xcolor}
 \usepackage{amsmath, amssymb}
 \usepackage{doi} % automatic doi-links
 \usepackage[round]{natbib} % bibliography
@@ -14,9 +12,6 @@
 \usepackage{nameref} % reference appendices with names
 \usepackage[onehalfspacing]{setspace} % more space
 \usepackage[labelfont=bf,font=small]{caption} % smaller captions
-\usepackage{todonotes}
-\newcommand{\EJ}[1]{\todo[inline, color=green]{  #1 }}
-\newcommand{\Samuel}[1]{\todo[inline, color=white]{Samuel:  #1 }}
 
 
 %% margins
@@ -36,10 +31,10 @@
 \newcommand\longtitle{Power Priors for Replication Studies}
 \newcommand\shorttitle{Power Priors for Replication Studies} % if longtitle too long, change here
 \newcommand\subtitle{}
-\newcommand\longauthors{Samuel Pawel\textsuperscript{*}, Frederik Aust\textsuperscript{$\dagger$}, Leonhard Held\textsuperscript{*}, Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
+\newcommand\longauthors{Samuel Pawel\textsuperscript{$\star$}, Frederik Aust\textsuperscript{$\dagger$}, Leonhard Held\textsuperscript{$\star$}, Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
 \newcommand\shortauthors{S. Pawel, F. Aust, L. Held, E.-J. Wagenmakers} % if longauthors too long, change here
 \newcommand\affiliation{
-  * Department of Biostatistics, University of Zurich \\
+  $\star$ Department of Biostatistics, University of Zurich \\
   $\dagger$ Department of Psychological Methods, University of Amsterdam
 }
 \newcommand\mail{samuel.pawel@uzh.ch}
@@ -66,9 +61,9 @@
   pdfsubject={},
   pdfkeywords={},
   colorlinks=true,
-  linkcolor=RoyalPurple,
+  linkcolor=blue,
   anchorcolor=black,
-  citecolor=MidnightBlue,
+  citecolor=blue,
   urlcolor=black,
 }
 
@@ -112,6 +107,7 @@ library(xtable) # LaTeX tables
 library(dplyr) # easier data manipulation
 library(hypergeo) # confluent hypergeometric function
 library(ReplicationSuccess) # for data set
+library(ggpubr) # combining plots
 @
 
 %% Abstract
@@ -627,9 +623,9 @@ plotDF <- do.call("rbind", lapply(X = d, FUN = function(d) {
 }))
 ggplot(data = plotDF, aes(x = x, y = density, color = ordered(dsqrt))) +
     geom_line(size = 0.5, alpha = 0.95) +
-    labs(color = bquote(frac("|" * hat(theta)[italic("r")] -
-                              hat(theta)[italic("o")] * "|",
-                             sigma[italic("o")])),
+    labs(color = bquote(frac("|" * hat(theta) -
+                              hat(theta)["0"] * "|",
+                             sigma["0"])),
          x = bquote("Power parameter" ~ alpha),
          y = "Limiting marginal posterior density") +
     theme_bw() +
@@ -1915,13 +1911,19 @@ follows a generalized F distribution
 
 
 % Bibliography
-% % ------------------------------------------------------------------------------
+%% ------------------------------------------------------------------------------
 \bibliographystyle{apalikedoiurl}
 \bibliography{bibliography}
 
-<< "sessionInfo", echo = Reproducibility, results = Reproducibility >>=
+
+%% R sessionInfo for reproducibility
+%% -----------------------------------------------------------------------------
+<< "sessionInfo1", eval = Reproducibility, results = "asis" >>=
 ## print R sessionInfo to see system information and package versions
-## used to compile the manuscript
+## used to compile the manuscript (set Reproducibility = FALSE, to not do that)
+cat("\\newpage \\section*{Computational details}")
+@
+<< "sessionInfo2", echo = Reproducibility, results = Reproducibility >>=
 sessionInfo()
 @
 
