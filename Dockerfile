@@ -1,5 +1,5 @@
 ## set R version (https://hub.docker.com/r/rocker/verse/tags)
-FROM rocker/verse:4.2
+FROM rocker/verse:4.2.1
 
 ## name of the manuscript (as in Makefile and paper/Makefile)
 ENV FILE=ppreplication

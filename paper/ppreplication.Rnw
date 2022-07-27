@@ -14,9 +14,6 @@
 \usepackage{nameref} % reference appendices with names
 \usepackage[onehalfspacing]{setspace} % more space
 \usepackage[labelfont=bf,font=small]{caption} % smaller captions
-\usepackage{todonotes}
-\newcommand{\EJ}[1]{\todo[inline, color=green]{  #1 }}
-\newcommand{\Samuel}[1]{\todo[inline, color=white]{Samuel:  #1 }}
 
 %% margins
 \usepackage{geometry}
@@ -108,7 +105,7 @@ library(xtable) # LaTeX tables
 library(dplyr) # easier data manipulation
 library(hypergeo) # confluent hypergeometric function
 library(ReplicationSuccess) # for data set
-library(ggpubr) # combining plots
+library(gridExtra) # combining plots
 @
 
 %% Abstract
@@ -467,7 +464,8 @@ plotBot <- ggplot(data = margplotDF, aes(x = x, y = density, color = trFormat)) 
           legend.text.align = 0, strip.text.x = element_text(size = 11))
 
 ## Combine all plots
-ggpubr::ggarrange(plotTop, plotBot, ncol = 1, heights = c(0.5, 0.5))
+grid.arrange(plotTop, plotBot, ncol = 1)
+## ggpubr::ggarrange(plotTop, plotBot, ncol = 1, heights = c(0.5, 0.5))
 @
 \caption{Analysis of three replication studies of the ``Labels'' experiment from
   \citet{Protzko2020}. Shown are joint (top) and marginal (bottom) posterior
