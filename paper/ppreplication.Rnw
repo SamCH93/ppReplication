@@ -340,7 +340,7 @@ x <- 1
 y <- 1
 @
 
-\subsection{Example ``\Sexpr{ex}''}
+\subsubsection{Example ``\Sexpr{ex}''}
 
 We now illustrate the methodology on data from the large-scale replication
 project by \citet{Protzko2020}. The project featured an experiment called
@@ -474,12 +474,12 @@ grid.arrange(plotTop, plotBot, ncol = 1)
   estimate $\that_{o} = \Sexpr{round(to, 2)}$ (with standard error
   $\sigma_{o} = \Sexpr{round(so, 2)}$) and an initial flat prior
   $f(\theta) \propto 1$. The power parameter $\alpha$ is assigned a uniform
-  $\alpha \sim \Be(\Sexpr{round(x, 2)}, \Sexpr{round(y, 2)})$ prior
-  distribution. The dashed lines depict the posterior density for the effect
-  size $\theta$ when the replication data are analysed in isolation without
-  incorporation of the original data. The dotted line represents the limiting
-  posterior density of the power parameter $\alpha$ for perfectly agreeing
-  original and replication studies.}
+  $\Be(\Sexpr{round(x, 2)}, \Sexpr{round(y, 2)})$ prior distribution. The dashed
+  lines depict the posterior density for the effect size $\theta$ when the
+  replication data are analysed in isolation without incorporation of the
+  original data. The dotted line represents the limiting posterior density of
+  the power parameter $\alpha$ for perfectly agreeing original and replication
+  studies.}
 \label{fig:post2d}
 \end{figure}
 
@@ -489,8 +489,8 @@ three external replication studies. The first replication found an effect
 estimate which was smaller than the original one
 ($\that_{r1} = \Sexpr{round(tr[1], 2)}$), whereas the other two replications
 found effect estimates that were either identical
-($\that_{r2} = \Sexpr{round(tr[3], 2)}$ or larger
-$\that_{r3} = \Sexpr{round(tr[2], 2)}$) than that reported in the original
+($\that_{r2} = \Sexpr{round(tr[3], 2)}$) or larger
+($\that_{r3} = \Sexpr{round(tr[2], 2)}$) than that reported in the original
 study. This is reflected in the marginal posterior distributions of the power
 parameter $\alpha$, shown in the bottom right panel of Figure~\ref{fig:post2d}.
 That is, the marginal distribution of the first replication (yellow) is slightly
@@ -631,10 +631,10 @@ and the simple hypothesis $\h{\text{d}} \colon \alpha = 0$ can be seen as a
 limiting case when $y \to \infty$.
 
 
-\subsection{Example ``\Sexpr{ex}'' (continued)}
+\subsubsection{Example ``\Sexpr{ex}'' (continued)}
 
 Table~\ref{tab:hypothesis} displays the results of the proposed hypothesis tests
-applied to the three replications of the experiment ``\Sexpr{ex}''. The Bayes
+applied to the three replications of the ``\Sexpr{ex}'' experiment. The Bayes
 factors contrasting $\h{0}\colon \theta = 0$ to $\h{1}\colon \theta \neq 0$ with
 normalized power prior with uniform prior for the power parameter $\alpha$ under
 the alternative (column $\BF_{01}(\hat{\theta}_r \given x =1, y =1)$) indicate
@@ -656,7 +656,7 @@ $\BF_{01}(\hat{\theta}_r \given \alpha = 1)$).
     $\h{1}$, and Bayes factors contrasting $\h{\text{d}}\colon \alpha < 1$ to
     $\h{\text{c}}\colon \alpha = 1$ with either initial unit-information prior
     $\theta \sim \Nor(0, \kappa^2)$ and $\h{\text{d}} \colon \alpha = 0$ or
-    $\alpha \given \h{\text{d}} \sim \Be(1, y)$ prior under $\h{\text{d}}$.\\}
+    $\alpha \given \h{\text{d}} \sim \Be(1, y)$ prior under $\h{\text{d}}$.}
   \label{tab:hypothesis}
 \resizebox{1\textwidth}{!}{%
 << "table-Bayes-factors", results = "asis" >>=
@@ -777,7 +777,7 @@ compatible but does not provide evidence for a non-zero effect, whereas the
 third replication provides much evidence for a a non-zero effect but is
 incompatible with the original study.
 
-\subsection{Bayes factor asymptotics}
+\subsubsection{Bayes factor asymptotics}
 
 << "asymptotic-Bayes-factor" >>=
 ## Compute bound for the Bayes factor
@@ -818,7 +818,7 @@ factors for testing the power parameter $\alpha$ from~\eqref{eq:bfalpha}
 and~\eqref{eq:bfdcrandom} converge to positive constants
 \begin{align}
   \label{eq:boundsimple}
-  \lim_{\sigma_{r} \downarrow 0} \BF_{\text{dc}} (\theta_r\given \kappa^2)
+  \lim_{\sigma_{r} \downarrow 0} \BF_{\text{dc}} (\theta_r\given \kappa^2) =
     \sqrt{s  \sigma^{2}_{o}/\kappa^{2}} \, \exp\left[
     -\frac{1}{2} \, \left\{\frac{\theta_r^{2}}{\kappa^{2}} -
     \frac{(\theta_r - s\that_{o})^{2}}{s\sigma^{2}_{o}}\right\}\right]
@@ -891,9 +891,9 @@ algebra, one can show that $\BF_{\text{dc}} \leq \gamma$ is equivalent to
 % \end{align*}
 % which is equivalent to
 \begin{align}
-  \left(\that_{r} -
+  \left\{\that_{r} -
   \frac{s \that_{o} (\sigma^{2}_{r} + \kappa^{2})}{\kappa^{2} -
-  s  \sigma^{2}_{o}}\right)^{2}
+  s  \sigma^{2}_{o}}\right\}^{2}
   \leq X  \label{eq:RScond}
 \end{align}
 for $\kappa^{2} > s  \sigma^{2}_{o}$ and with
@@ -916,8 +916,8 @@ under both hypotheses. Hence the probability of replication success is given by
 with non-centrality parameter
 \begin{align*}
   \lambda_{i}
-  = \left(m_{i} - \frac{s \that_{o}  (\sigma^{2}_{r} + \kappa^{2})}{\kappa^{2}
-  - s  \sigma^{2}_{o}}\right)^{2} \big / v_{i}.
+  = \left\{m_{i} - \frac{s \that_{o}  (\sigma^{2}_{r} + \kappa^{2})}{\kappa^{2}
+  - s  \sigma^{2}_{o}}\right\}^{2} \big / v_{i}.
 \end{align*}
 
 To determine the replication sample size, we can now use~\eqref{eq:PRS} to
@@ -1078,7 +1078,7 @@ ggplot(data = plotDF, aes(x = c, y = p, color = type)) +
 \end{figure}
 
 
-\subsection{Example ``\Sexpr{ex}'' (continued)}
+\subsubsection{Example ``\Sexpr{ex}'' (continued)}
 
 Figure~\ref{fig:ssd} illustrates Bayesian design analysis based on the power
 parameter Bayes factor~\eqref{eq:bfalpha}. The three replication studies from
@@ -1241,7 +1241,7 @@ ggplot(data = filter(plotDF, type != "italic('I')"),
           strip.text.x = element_text(size = 11))
 
 @
-\caption{he heterogeneity $\tau^{2}$ and relative heterogeneity
+\caption{The heterogeneity $\tau^{2}$ and relative heterogeneity
   $I^{2} = \tau^{2}/(\tau^{2} + \sigma^{2}_o)$ of a hierarchical model versus
   the power parameter $\alpha$ from a power prior model which lead to matching
   posteriors for the effect sizes $\theta$ and $\theta_{r}$. The variance of the
@@ -1396,7 +1396,7 @@ $I^2 = \tau^2/(\sigma^2_o + \tau^2) \sim \mbox{GBe}(y, x, 2)$ (middle) and the
 power parameter $\alpha \sim \Be(x, y)$ (right) that lead to matching marginal
 posteriors for effect sizes $\theta$ and $\theta_{r}$. The variance of the
 original effect estimate $\sigma_{o}^2 = \Sexpr{round(so, 2)}^{2}$ from
-the``\Sexpr{ex}'' ' experiment is used for the transformation to the
+the ``\Sexpr{ex}'' experiment is used for the transformation to the
 heterogeneity scale $\tau^{2}$.}
 \label{fig:matchingpriors}
 \end{figure}

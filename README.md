@@ -29,8 +29,8 @@ cd paper
 make pdf
 ```
 
-this should reproduce all analyses and output the file `pppooling.pdf` in the
-paper directory.
+this should reproduce all analyses and output the file `ppreplication.pdf` in
+the paper directory.
 
 Although our analysis depends on only few dependencies, this approach may lead
 to different results (or not even compile successfully) in the future if R or an
@@ -47,10 +47,10 @@ Run in a shell from the root directory of the repository
 make drunpdf
 ```
 
-this should output the file `pppooling.pdf` in the paper directory. The Docker
-approach takes a bit longer but reruns our analyses in a Docker container which
-encapsulates the computational environment (R and R package versions) that was
-used in the original analysis. The only way this approach could become
+this should output the file `ppreplication.pdf` in the paper directory. The
+Docker approach takes a bit longer but reruns our analyses in a Docker container
+which encapsulates the computational environment (R and R package versions) that
+was used in the original analysis. The only way this approach could become
 irreproducible is when the [rocker/verse](https://hub.docker.com/r/rocker/verse)
 base image becomes unavailable and/or the MRAN snapshot of CRAN becomes
 unavailable.
