@@ -537,7 +537,7 @@ compared to the isolated replication posterior given by dashed blue line.
 Apart from the estimation of $\theta$ and $\alpha$, one may also wish to test
 hypotheses regarding these parameters. A principled Bayesian approach is to
 quantify the strength of evidence that the data provide for two competing
-hypotheses about the parameters $\h{j}$ and $\h{k}$, say, by computing the Bayes
+hypotheses $\h{j}$ and $\h{k}$ about the parameters, say, by computing the Bayes
 factor $\BF_{jk}(\that_r) = f(\that_r \given \h{j})/f(\that_r \given \h{k})$,
 with
 \begin{align}
@@ -548,8 +548,8 @@ with
 the marginal likelihood of the replication data $\that_r$ under hypothesis
 $i \in \{k, j\}$. The Bayes factor can either be interpreted as the updating
 factor of the prior odds to the posterior odds of the hypotheses $\h{j}$ and
-$\h{k}$, or as the relative predictive performance of $\h{j}$ and $\h{k}$ at
-predicting the data \citep{Good1958, Jeffreys1961, Kass1995}.
+$\h{k}$, or as the relative accuracy with which $\h{j}$ and $\h{k}$ predict the
+data \citep{Good1958, Jeffreys1961, Kass1995}.
 
 
 \subsubsection{Hypotheses about the effect size \texorpdfstring{$\boldsymbol{\theta}$}{}}
@@ -612,7 +612,7 @@ minimal prior information about the direction or magnitude of the effect size
     = \frac{\Nor(\that_{r}\given0, \sigma^{2}_{r} + \kappa^{2})}{\Nor(\that_{r}\given s  \that_{o}, \sigma^{2}_{r} + s  \sigma^{2}_{o})}
     \label{eq:bfalpha}
 \end{align}
-with $s = (\kappa^{2}/\sigma^{2}_{o}) / \{1 + (\kappa^{2}/\sigma^{2}_{o})\}$.
+with $s = \kappa^{2} / (\sigma^{2}_{o} + \kappa^{2})$.
 
 An alternative approach that avoids the specification of a proper initial prior
 for $\theta$ is to assign a prior to $\alpha$ under $\h{\text{d}}$. A suitable
@@ -790,13 +790,15 @@ bfBound <- dnorm(x = trueESmin, mean = 0, sd = k)/
 bfBound2 <- beta(3/2, 2)/beta(1, 2)
 @
 
-It is of interest to understand the asymptotic behavior of the proposed Bayes
-factors. For instance, we may wish to understand what happens when the standard
-error of the replication study $\sigma_{r}$ becomes arbitrarily small (through
-an increase in sample size). Assume that $\that_{r}$ is a consistent estimator
-of its true underlying effect size $\theta_r$, so that as the standard error
-$\sigma_r$ goes to zero, the estimate will converge in probability to the true
-effect size $\theta_r$.
+Some of the Bayes factors in the previous example provided only modest evidence
+for the test-relevant hypotheses despite the large sample sizes in original and
+replication study. It is therefore of interest to understand the asymptotic
+behavior of the proposed Bayes factors. For instance, we may wish to understand
+what happens when the standard error of the replication study $\sigma_{r}$
+becomes arbitrarily small (through an increase in sample size). Assume that
+$\that_{r}$ is a consistent estimator of its true underlying effect size
+$\theta_r$, so that as the standard error $\sigma_r$ goes to zero, the estimate
+will converge in probability to the true effect size $\theta_r$.
 
 The limiting Bayes factors for testing the effect size $\theta$
 from~\eqref{eq:bf01} and~\eqref{eq:bfr} are then given by
@@ -819,7 +821,7 @@ and~\eqref{eq:bfdcrandom} converge to positive constants
 \begin{align}
   \label{eq:boundsimple}
   \lim_{\sigma_{r} \downarrow 0} \BF_{\text{dc}} (\theta_r\given \kappa^2) =
-    \sqrt{s  \sigma^{2}_{o}/\kappa^{2}} \, \exp\left[
+    \sqrt{1 - s} \, \exp\left[
     -\frac{1}{2} \, \left\{\frac{\theta_r^{2}}{\kappa^{2}} -
     \frac{(\theta_r - s\that_{o})^{2}}{s\sigma^{2}_{o}}\right\}\right]
 \end{align}
@@ -892,8 +894,8 @@ algebra, one can show that $\BF_{\text{dc}} \leq \gamma$ is equivalent to
 % which is equivalent to
 \begin{align}
   \left\{\that_{r} -
-  \frac{s \that_{o} (\sigma^{2}_{r} + \kappa^{2})}{\kappa^{2} -
-  s  \sigma^{2}_{o}}\right\}^{2}
+%   \frac{s \that_{o} (\sigma^{2}_{r} + \kappa^{2})}{\kappa^{2} - s  \sigma^{2}_{o}}
+  \frac{\that_o \, (\sigma^{2}_{r} + \kappa^{2})}{\kappa^2}\right\}^{2}
   \leq X  \label{eq:RScond}
 \end{align}
 for $\kappa^{2} > s  \sigma^{2}_{o}$ and with
@@ -916,8 +918,10 @@ under both hypotheses. Hence the probability of replication success is given by
 with non-centrality parameter
 \begin{align*}
   \lambda_{i}
-  = \left\{m_{i} - \frac{s \that_{o}  (\sigma^{2}_{r} + \kappa^{2})}{\kappa^{2}
-  - s  \sigma^{2}_{o}}\right\}^{2} \big / v_{i}.
+  = \left\{m_{i} -
+  %\frac{s \that_{o}  (\sigma^{2}_{r} + \kappa^{2})}{\kappa^{2}  - s  \sigma^{2}_{o}}
+  \frac{\that_o \, (\sigma^{2}_{r} + \kappa^{2})}{\kappa^2}
+  \right\}^{2} \big / v_{i}.
 \end{align*}
 
 To determine the replication sample size, we can now use~\eqref{eq:PRS} to
@@ -1081,14 +1085,14 @@ ggplot(data = plotDF, aes(x = c, y = p, color = type)) +
 \subsubsection{Example ``\Sexpr{ex}'' (continued)}
 
 Figure~\ref{fig:ssd} illustrates Bayesian design analysis based on the power
-parameter Bayes factor~\eqref{eq:bfalpha}. The three replication studies from
-the experiment ``Labels'' are now regarded as original studies, and each column
-of the figure shows the corresponding design analyses for future replications.
-In each plot, the probability for finding strong evidence for
-$\h{\text{c}}\colon \alpha = 1$ (top) or $\h{\text{d}}\colon \alpha = 0$
-(bottom) is shown as a function of the relative sample size. In both cases, the
-probability is computed assuming that either $\h{\text{c}}$ (blue) or
-$\h{\text{d}}$ (yellow) is true.
+parameter Bayes factor $\BF_{\text{dc}}(\that_{r} \given \kappa^{2})$
+from~\eqref{eq:bfalpha}. The three replication studies from the experiment
+``Labels'' are now regarded as original studies, and each column of the figure
+shows the corresponding design analyses for future replications. In each plot,
+the probability for finding strong evidence for $\h{\text{c}}\colon \alpha = 1$
+(top) or $\h{\text{d}}\colon \alpha = 0$ (bottom) is shown as a function of the
+relative sample size. In both cases, the probability is computed assuming that
+either $\h{\text{c}}$ (blue) or $\h{\text{d}}$ (yellow) is true.
 
 The curves look more or less similar for all three studies. We see from the
 lower panels that the probability for finding strong evidence for $\h{\text{d}}$
@@ -1487,14 +1491,14 @@ contrasting
   &\phantom{\h{\text{c}}\colon} \tau^{2} = 0&
 \end{align*}
 with % shrinkage factor
-$s = (\kappa^{2}/\sigma^{2}_{o})/\{1 + (\kappa^{2}/\sigma^{2}_{o})\}$.
+$s = \kappa^{2}/(\sigma^2_o + \kappa^{2})$.
 Hence, the Bayes factor compares the likelihood of the replication data under
 the initial unit-information prior relative to the likelihood of the replication
 data under the unit-information prior updated by the original data, assuming no
-heterogeneity under either hypothesis. Although this particular test relates to
-the power parameter $\alpha$ in the power prior model, it is surprisingly
-unrelated to testing the heterogeneity variance $\tau^2$ in the hierarchical
-model.
+heterogeneity under either hypothesis (so that the hierarchical model collapses
+to a fixed effects model). Although this particular test relates to the power
+parameter $\alpha$ in the power prior model, it is surprisingly unrelated to
+testing the heterogeneity variance $\tau^2$ in the hierarchical model.
 
 The Bayes factor~\eqref{eq:bfdcrandom} testing
 $\h{\text{d}}\colon \alpha < 1$ versus $\h{\text{c}}\colon \alpha = 1$
@@ -1508,7 +1512,7 @@ corresponds to testing $\h{\text{d}}\colon \tau^2 > 0$ versus $\h{\text{c}}\colo
   % f\{\tau^{2} = (1/\alpha - 1)\, (\sigma^{2}_{o}/2)\}\{\sigma^{2}_{o}/(2\alpha^{2})\} &
   &\text{versus}& &
   \theta_{*} \given \tau^{2},\h{\text{c}} &\sim \Nor(\that_{o}, \sigma^{2}_{o} + \tau^{2}) \\
-  \tau^2 \given \h{\text{c}}&\sim \mbox{GF}(y, 1, \sigma^2_o/2) &&&
+  \tau^2 \given \h{\text{d}}&\sim \mbox{GF}(y, 1, \sigma^2_o/2) &&&
   \h{\text{c}}\colon \tau^{2}&= 0
 \end{align*}
 The test for compatibility via the power parameter $\alpha$ is thus equivalent
@@ -1529,32 +1533,32 @@ $\h{\text{c}}\colon \tau^2 = 0$) but converges to a positive constant.
 It is, however, possible to construct a consistent test for
 $\h{\text{c}}\colon \tau^2 = 0$ when we assign a different prior to $\tau^2$
 under $\h{\text{d}}\colon \tau^2 > 0$. For instance, when we assign an inverse
-gamma prior $\tau^2 \given \h{\text{d}} \sim \mbox{IG}(s, t)$ with shape $s$ and
-scale $t$, the Bayes factor is given by
+gamma prior $\tau^2 \given \h{\text{d}} \sim \mbox{IG}(q, r)$ with shape $q$ and
+scale $r$, the Bayes factor is given by
 \begin{align*}
-    \BF_{\text{dc}}(\that_r \given s, t)
+    \BF_{\text{dc}}(\that_r \given q, r)
     = \frac{\int \Nor(\that_r \given \that_o, \sigma^2_r + \sigma^2_o + 2\tau^2) \,
-    \mbox{IG}(\tau^2 \given s, t) \, \text{d}\tau^2}{\Nor(\that_r \given \that_o,
+    \mbox{IG}(\tau^2 \given q, r) \, \text{d}\tau^2}{\Nor(\that_r \given \that_o,
     \sigma^2_r + \sigma^2_o)}
 \end{align*}
-with $\mbox{IG}(\cdot \given s, t)$ the density function of the inverse gamma
+with $\mbox{IG}(\cdot \given q, r)$ the density function of the inverse gamma
 distribution. The limiting Bayes factor is therefore
 \begin{align*}
-    \lim_{\sigma_o, \sigma_r \downarrow 0} \BF_{\text{dc}}(\that_r \given s, t)
-    = \frac{\Gamma(s + 1/2)\{t + (\theta_r - \theta_o)^2/4\}^{-(s + 1/2)}}{\delta(\theta_r - \theta_o) \, \sqrt{4\pi}},
+    \lim_{\sigma_o, \sigma_r \downarrow 0} \BF_{\text{dc}}(\that_r \given q, r)
+    = \frac{\Gamma(q + 1/2)\{r + (\theta_r - \theta_o)^2/4\}^{-(q + 1/2)}}{\delta(\theta_r - \theta_o) \, \sqrt{4\pi}},
 \end{align*}
 so it correctly goes to zero/infinity when the effect sizes $\theta_r$ and
 $\theta_o$ are equivalent/different. To understand why the test with
-$\tau^2 \given \h{\text{d}} \sim \mbox{IG}(s,t)$ is consistent, but the original
+$\tau^2 \given \h{\text{d}} \sim \mbox{IG}(q,r)$ is consistent, but the original
 test with $\alpha \given \h{\text{d}} \sim \Be(1, y)$ is not, one can transform
 the consistent test on $\tau^2$ to the corresponding test on $\alpha$. The
 inverse gamma prior for $\tau^2$ implies a prior for $\alpha$ with density
 \begin{align}
     \label{eq:igalpha}
-    f(\alpha \given s, t)
-    &= \frac{t^s}{\Gamma(s)} \, \frac{\alpha^{s - 1}}{(1 - \alpha)^{s + 1}} \,
-    \left(\frac{2}{\sigma^2_o}\right)^{s} \,
-    \exp\left\{-\frac{2 \,t\, \alpha}{\sigma^2_o(1 - \alpha)}\right\}.
+    f(\alpha \given q, r)
+    &= \frac{r^q}{\Gamma(q)} \, \frac{\alpha^{q - 1}}{(1 - \alpha)^{q + 1}} \,
+    \left(\frac{2}{\sigma^2_o}\right)^{q} \,
+    \exp\left\{-\frac{2 \,r\, \alpha}{\sigma^2_o(1 - \alpha)}\right\}.
 \end{align}
 The Bayes factor contrasting $\h{\text{c}}\colon \alpha = 1$ versus
 $\h{\text{d}}\colon \alpha < 1$ with prior~\eqref{eq:igalpha} assigned to
@@ -1610,7 +1614,7 @@ replication effect estimates in a hierarchical fashion but link their overall
 effect size to the original study via a power prior. Multisite replications are
 thus the opposite of the usual situation in clinical trials where several
 historical ``original'' studies but only one current ``replication'' study is
-available \citep{Gravestock2018}.
+available \citep{Gravestock2019}.
 
 Another commonly used Bayesian approach for incorporating historical data are
 \emph{robust mixture priors}, \ie{} priors which are mixtures of the posterior
@@ -1640,7 +1644,8 @@ estimation and testing under the power prior framework at
 \url{https://github.com/SamCH93/ppRep}.
 
 \section*{Acknowledgments}
-We thank \citet{Protzko2020} for publicly sharing their data. This work was
+We thank \citet{Protzko2020} for publicly sharing their data. We thank
+Małgorzata Roos for helpful comments on a draft of the manuscript. This work was
 supported in part by an NWO Vici grant (016.Vici.170.083) to EJW, an Advanced
 ERC grant (743086 UNIFY) to EJW, and a Swiss National Science Foundation
 mobility grant (189295) to LH and SP.
