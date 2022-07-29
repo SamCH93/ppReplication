@@ -1639,9 +1639,12 @@ The CC-By Attribution 4.0 International licensed data were downloaded from
 \url{https://osf.io/42ef9/}. All analyses were conducted in the R programming
 language version \Sexpr{paste(version$major, version$minor, sep = ".")}
 \citep{R}. The code and data to reproduce this manuscript is available at
-\url{https://github.com/SamCH93/ppReplication}. A snapshot of the GitHub
-repository at the time of writing this article is archived at
-\url{https://doi.org/10.5281/zenodo.XXXXX}. We also provide an R package for
+\url{https://github.com/SamCH93/ppReplication}.
+% A snapshot of the GitHub
+% repository at the time of writing this article is archived at
+% \url{https://doi.org/10.5281/zenodo.XXXXX}.
+% TODO add once zenodo works
+We also provide an R package for
 estimation and testing under the power prior framework with documentation and
 example code at \url{https://github.com/SamCH93/ppRep}.
 
