@@ -47,7 +47,7 @@
   \affiliation \\
   E-mail: \href{mailto:\mail}{\mail}
 }
-\date{July 28, 2022} %don't forget to hard-code date when submitting to arXiv!
+\date{July 29, 2022} %don't forget to hard-code date when submitting to arXiv!
 
 %% hyperref options
 \usepackage{hyperref}
@@ -898,18 +898,19 @@ algebra, one can show that $\BF_{\text{dc}} \leq \gamma$ is equivalent to
   \frac{\that_o \, (\sigma^{2}_{r} + \kappa^{2})}{\kappa^2}\right\}^{2}
   \leq X  \label{eq:RScond}
 \end{align}
-for $\kappa^{2} > s  \sigma^{2}_{o}$ and with
+with
 \begin{align*}
     X =&
     \frac{(\sigma^{2}_{r} + \kappa^{2})(\sigma^{2}_{r} +
     s  \sigma^{2}_{o})}{\kappa^{2} - s  \sigma^{2}_{o}}
     \left\{\log\gamma^{2}- \log\left(\frac{\sigma^{2}_{r} + s  \sigma^{2}_{o}}{
-            \sigma^{2}_{r} + \kappa^{2}}\right) - \frac{s^{2}  \that^{2}_{o}}{s  \sigma^{2}_{o} - \kappa^{2}}\right\}.
+            \sigma^{2}_{r} + \kappa^{2}}\right) - \frac{s^{2}  \that^{2}_{o}}{s  \sigma^{2}_{o} - \kappa^{2}}\right\}
 \end{align*}
-Denote by $m_{i}$ and $v_{i}$ the mean and variance of $\that_{r}$ under
-hypothesis $i \in \{\text{d}, \text{c}\}$. The left hand side
-of~\eqref{eq:RScond} then follows a scaled non-central chi-squared distribution
-under both hypotheses. Hence the probability of replication success is given by
+and $s = \kappa^{2}/(\sigma^{2}_{o} + \kappa^{2})$. Denote by $m_{i}$ and
+$v_{i}$ the mean and variance of $\that_{r}$ under hypothesis
+$i \in \{\text{d}, \text{c}\}$. The left hand side of~\eqref{eq:RScond} then
+follows a scaled non-central chi-squared distribution under both hypotheses.
+Hence the probability of replication success is given by
 \begin{align}
   \Pr(\BF_{\text{dc}} \leq \gamma \given \h{i})
   &= \Pr\left(\chi^{2}_{1,\lambda_{i}} \leq X/v_{i} \right)
@@ -939,11 +940,12 @@ aforementioned approximation $n_{r} \approx 4/\sigma^{2}_{r}$.
 << "Bayes-factor-design-analysis", fig.height = 4.5 >>=
 ## Function to compute probability of replication success
 powerFun <- function(sr, to, so, k, level, mi, vi) {
-    s <- k^2/so^2 / (1 + k^2/so^2)
+    s <- k^2 / (so^2 + k^2)
     X <- (sr^2 + k^2) * (sr^2 + s * so^2) / (k^2 - s * so^2) *
         (2 * log(level) - log((sr^2 + s * so^2) / (sr^2 + k^2)) -
          s^2*to^2/(s*so^2 - k^2))
-    lambdai <- (mi - s * to * (sr^2 + k^2) / (k^2 - s * so^2))^2/vi
+    ## lambdai <- (mi - s * to * (sr^2 + k^2) / (k^2 - s * so^2))^2/vi
+    lambdai <- (mi - to * (sr^2 + k^2) / k^2)^2/vi
     p <- stats::pchisq(q = X/vi, df = 1, ncp = lambdai, lower.tail = TRUE)
     return(p)
 }
@@ -1640,8 +1642,8 @@ language version \Sexpr{paste(version$major, version$minor, sep = ".")}
 \url{https://github.com/SamCH93/ppReplication}. A snapshot of the GitHub
 repository at the time of writing this article is archived at
 \url{https://doi.org/10.5281/zenodo.XXXXX}. We also provide an R package for
-estimation and testing under the power prior framework at
-\url{https://github.com/SamCH93/ppRep}.
+estimation and testing under the power prior framework with documentation and
+example code at \url{https://github.com/SamCH93/ppRep}.
 
 \section*{Acknowledgments}
 We thank \citet{Protzko2020} for publicly sharing their data. We thank
