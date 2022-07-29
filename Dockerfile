@@ -24,7 +24,7 @@ RUN install2.r --error --skipinstalled --ncpus -1 \
 
 ## install R packages from GitHub (use @ for specific version/tag)
 RUN installGithub.r \
-    SamCH93/ppRep@preprint1
+    SamCH93/ppRep@preprint
 
 ## knit Rnw to tex and compile tex to PDF
 CMD if [ "$pdfdocker" = "false" ] ; then \
