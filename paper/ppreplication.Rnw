@@ -22,8 +22,8 @@
   total={170mm,257mm},
   left=25mm,
   right=25mm,
-  top=20mm,
-  bottom=20mm,
+  top=30mm,
+  bottom=25mm,
 }
 
 %% title, authors, affiliations, mail
@@ -47,7 +47,7 @@
   \affiliation \\
   E-mail: \href{mailto:\mail}{\mail}
 }
-\date{July 29, 2022} %don't forget to hard-code date when submitting to arXiv!
+\date{\today} %don't forget to hard-code date when submitting to arXiv!
 
 %% hyperref options
 \usepackage{hyperref}
@@ -74,7 +74,6 @@
 
 %% custom commands
 \input{defs.tex}
-\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 \maketitle
 
@@ -1653,6 +1652,8 @@ ERC grant (743086 UNIFY) to EJW, and a Swiss National Science Foundation
 mobility grant (189295) to LH and SP.
 % Our acknowledgement of these individuals does not imply their endorsement of this article.
 
+\section*{Conflict of interest}
+The authors have no conflicts of interest to declare.
 
 % \section*{Highlights}
 
@@ -1830,6 +1831,7 @@ of][]{PhamGia1989}.
 cat("\\newpage \\section*{Computational details}")
 @
 << "sessionInfo2", echo = Reproducibility, results = Reproducibility >>=
+cat(paste(Sys.time(), Sys.timezone(), "\n"))
 sessionInfo()
 @
 
