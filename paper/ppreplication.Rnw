@@ -21,9 +21,9 @@
   a4paper,
   total={170mm,257mm},
   left=25mm,
-  right=25mm,
+  right=20mm,
   top=30mm,
-  bottom=25mm,
+  bottom=20mm,
 }
 
 %% title, authors, affiliations, mail
@@ -158,12 +158,22 @@ historical data.
 One domain where historical data are per definition available is the analysis of
 replication studies. One pertinent question in this domain is the extent to
 which a replication study has successfully replicated the result of an original
-study. Many methods have been proposed to address this question \citep[among
-others]{Bayarri2002, Verhagen2014, Johnson2016, Etz2016, vanAert2017, Ly2018,
-  Hedges2019, Mathur2020, Held2020, Pawel2020, Pawel2020b, Held2021}. Here we
-propose a new and conceptually straightforward approach, namely to construct a
-power prior for the data from the original study, and to use that prior to draw
-inferences from the data of the replication study.
+study \citep{NSF2019}. Many methods have been proposed to address this question
+\citep[among others]{Bayarri2002, Verhagen2014, Johnson2016, Etz2016,
+  vanAert2017, Ly2018, Hedges2019, Mathur2020, Held2020, Pawel2020, Pawel2020b,
+  Held2021}. Here we propose a new and conceptually straightforward approach,
+namely to construct a power prior for the data from the original study, and to
+use that prior to draw inferences from the data of the replication study. The
+power prior approach can accommodate two common notions of replication success:
+First, the notion that the replication study should provide evidence for a
+genuine effect. This can be quantified by estimating and testing an effect size
+$\theta$, typically by assessing whether there is evidence that $\theta$ is
+different from zero. Second, the notion that the data from the original and
+replication studies should be compatible. This can be quantified by estimating
+and testing of the power parameter $\alpha$. Values close to $\alpha = 1$
+indicate compatibility as there is a complete pooling of both data sets, and
+values close to $\alpha = 0$ indicate incompatibility as the original data are
+completely discounted.
 
 Below we first show how power priors can be constructed from data of an original
 study under a meta-analytic framework (Section~\ref{sec:power-prior}). We then
@@ -185,11 +195,10 @@ either a generalized F prior is assigned to the between-study heterogeneity
 variance $\tau^2$ which scales with the variance of the original data, or if a
 generalized beta prior is assigned to the relative heterogeneity $I^2$. This
 perspective also explains the observed difficulty of making conclusive
-inferences about the power parameter $\alpha$ as it is difficult to make
+inferences about the power parameter $\alpha$, as it is difficult to make
 inferences about a variance from two observations alone, and also because the
 commonly assigned beta prior on $\alpha$ is entangled with the variance from the
 data.
-
 
 \section{Power prior modeling of replication studies}
 \label{sec:power-prior}
@@ -287,8 +296,8 @@ The normalizing constant
 is generally not available in closed form but requires numerical integration
 with respect to $\alpha$. If inference concerns only one parameter, a marginal
 posterior distribution for either $\alpha$ or $\theta$ can be obtained by
-integrating out the respective nuisance parameter from~\eqref{eq:posterior}. In
-the case of the power parameter $\alpha$, this leads to
+integrating out the corresponding nuisance parameter from~\eqref{eq:posterior}.
+In the case of the power parameter $\alpha$, this leads to
 \begin{align}
   f(\alpha \given \that_{r}, \that_{o}, x, y)
   =& \frac{\Nor(\that_{r}\given \that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \,
@@ -360,8 +369,9 @@ and replication study as it reflects the typical situation of only one
 replication study being conducted per original study.
 Section~\ref{sec:discussion} discusses possible extensions of the power prior
 approach for joint analyses in multisite designs.
+
 \begin{figure}[!htb]
-<< "figure-posterior-distribution", fig.height = 6 >>=
+<< "computing-posterior-distribution", fig.height = 6, cache = TRUE >>=
 ## Parameter grid to compute posterior density for
 nalpha <- 200
 ntheta <- 200
@@ -435,11 +445,48 @@ thetaplotDF2$trFormat <- paste0("{hat(theta)[italic('r')*", thetaplotDF2$rnumber
                                 thetaplotDF2$rnumber, "] == ",
                                 round(thetaplotDF2$sr, 2))
 
+## 95% HPD intervals
+alphaHPD <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    hpd <- postPPalphaHPD(level = 0.95, tr = tr[i], sr = sr[i], to = to,
+                          so = so, x = x, y = y, m = m, v = v)
+    out <- data.frame(y = max(alphaplotDF$density)*(1 + 0.05*i),
+                      lower = hpd[1], upper = hpd[2], rnumber = rnumber[i],
+                      parameter = "'Power parameter' ~ alpha", tr = tr[i],
+                      sr = sr[i], height = 0.2)
+    return(out)
+}))
+thetaHPD <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    hpd <- postPPthetaHPD(level = 0.95, tr = tr[i], sr = sr[i], to = to,
+                          so = so, x = x, y = y, m = m, v = v)
+    out <- data.frame(y = max(c(thetaplotDF2$density, thetaplotDF$density))*(1 + 0.06*i),
+                      lower = hpd[1], upper = hpd[2], rnumber = rnumber[i],
+                      parameter = "'Effect size' ~ theta", tr = tr[i],
+                      sr = sr[i], height = 0.6)
+    return(out)
+}))
+HPDDF <- rbind(alphaHPD, thetaHPD)
+HPDDF$trFormat <- paste0("{hat(theta)[italic('r')*", HPDDF$rnumber, "] == ",
+                         round(HPDDF$tr, 2), "}*',' ~ sigma[italic('r')*",
+                         HPDDF$rnumber, "] == ", round(HPDDF$sr, 2))
+
+theta2HPD <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    hpd <- tr[i] + c(-1, 1)*qnorm(p = 0.975)*sr[i]
+    out <- data.frame(y = max(c(thetaplotDF2$density, thetaplotDF$density))*(1 + 0.05*i),
+                      lower = hpd[1], upper = hpd[2], rnumber = rnumber[i],
+                      parameter = "'Effect size' ~ theta", tr = tr[i],
+                      sr = sr[i], height = 0.6)
+    return(out)
+}))
+theta2HPD$trFormat <- paste0("{hat(theta)[italic('r')*", theta2HPD$rnumber, "] == ",
+                         round(theta2HPD$tr, 2), "}*',' ~ sigma[italic('r')*",
+                         theta2HPD$rnumber, "] == ", round(theta2HPD$sr, 2))
+
 ## Limitting density for perfectly agreeing effect estimates with c = so^2/sr^2 -> infty
 alphaLimitDF <- data.frame(x = alphaseq,
                            density = dbeta(x = alphaseq, x + 0.5, y),
                            parameter = "'Power parameter' ~ alpha")
-
+@
+<< "figure-posterior-distribution", fig.height = 6 >>=
 ## colorblind friendly scale
 ncat <- length(unique(margplotDF$trFormat))
 colblind <- palette.colors(n = ncat + 1, palette = "Okabe-Ito")[2:(ncat + 1)]
@@ -447,17 +494,23 @@ names(colblind) <- unique(margplotDF$trFormat)
 colblind <- colblind[order(names(colblind))]
 
 ## Plot of marginal posteriors
-plotBot <- ggplot(data = margplotDF, aes(x = x, y = density, color = trFormat)) +
+plotBot <- ggplot() +
+    geom_errorbarh(data = HPDDF,
+                   aes(xmin = lower, xmax = upper, y = y*1.05, color = trFormat,
+                       height = height), alpha = 0.8) +
+    geom_errorbarh(data = theta2HPD,
+                   aes(xmin = lower, xmax = upper, y = y*1.05, color = trFormat,
+                       height = height), alpha = 0.7, linetype = "dashed") +
+    geom_line(data = thetaplotDF2, aes(x = x, y = density, color = trFormat),
+                  lty = 2, alpha = 0.5, size = 0.7) +
+    geom_line(data = margplotDF, aes(x = x, y = density, color = trFormat),
+                  alpha = 0.9, size = 0.7) +
+    geom_line(data = alphaLimitDF, aes(x = x, y = density), col = 1, lty = 3, alpha = 0.5) +
     facet_wrap(~ parameter, scales = "free", labeller = label_parsed,
                strip.position = "bottom") +
-    geom_line(data = thetaplotDF2, lty = 2, alpha = 0.5, size = 0.7) +
-    geom_line(alpha = 0.9, size = 0.7) +
-    geom_line(data = alphaLimitDF, aes(x = x, y = density), col = 1, lty = 3, alpha = 0.5) +
     theme_bw() +
     labs(x = NULL, y = "Marginal posterior density", color = "") +
     scale_color_manual(values = colblind, labels = scales::parse_format()) +
-    ## scale_color_discrete_qualitative(palette = "Dark 3",
-    ##                                  labels = scales::parse_format()) +
     theme(legend.position = "top", panel.grid.minor = element_blank(),
           strip.background.x = element_blank(), strip.placement = "outside",
           legend.text.align = 0, strip.text.x = element_text(size = 11))
@@ -466,30 +519,48 @@ plotBot <- ggplot(data = margplotDF, aes(x = x, y = density, color = trFormat)) 
 grid.arrange(plotTop, plotBot, ncol = 1)
 ## ggpubr::ggarrange(plotTop, plotBot, ncol = 1, heights = c(0.5, 0.5))
 @
-\caption{Analysis of three replication studies of the ``Labels'' experiment from
-  \citet{Protzko2020}. Shown are joint (top) and marginal (bottom) posterior
-  distributions of effect size $\theta$ and power parameter $\alpha$. A power
-  prior for the effect size $\theta$ is constructed from the original effect
-  estimate $\that_{o} = \Sexpr{round(to, 2)}$ (with standard error
-  $\sigma_{o} = \Sexpr{round(so, 2)}$) and an initial flat prior
-  $f(\theta) \propto 1$. The power parameter $\alpha$ is assigned a uniform
-  $\Be(\Sexpr{round(x, 2)}, \Sexpr{round(y, 2)})$ prior distribution. The dashed
-  lines depict the posterior density for the effect size $\theta$ when the
-  replication data are analysed in isolation without incorporation of the
-  original data. The dotted line represents the limiting posterior density of
-  the power parameter $\alpha$ for perfectly agreeing original and replication
-  studies.}
+% \caption{Analysis of three replication studies of the ``Labels'' experiment from
+%   \citet{Protzko2020}. Shown are joint (top) and marginal (bottom) posterior
+%   distributions of effect size $\theta$ and power parameter $\alpha$ with 95\%
+%   highest posterior density credible intervals for the latter. A power prior for
+%   the effect size $\theta$ is constructed from the original effect estimate
+%   $\that_{o} = \Sexpr{round(to, 2)}$ (with standard error
+%   $\sigma_{o} = \Sexpr{round(so, 2)}$) and an initial flat prior
+%   $f(\theta) \propto 1$. The power parameter $\alpha$ is assigned a uniform
+%   $\Be(x = \Sexpr{round(x, 2)}, y = \Sexpr{round(y, 2)})$ prior distribution.
+%   The dashed lines depict the posterior density for the effect size $\theta$
+%   when the replication data are analyzed in isolation without incorporation of
+%   the original data. The dotted line represents the limiting posterior density
+%   of the power parameter $\alpha$ for perfectly agreeing original and
+%   replication studies.}
+\caption{Joint (top) and marginal (bottom) posterior distributions of effect
+  size $\theta$ and power parameter $\alpha$ based on data from the ``Labels''
+  experiment \citep{Protzko2020}. The dashed lines depict the posterior density
+  for the effect size $\theta$ when the replication data are analyzed in
+  isolation without incorporation of the original data. The horizontal error
+  bars represent the corresponding 95\% highest posterior density credible
+  intervals. The dotted line represents the limiting posterior density of the
+  power parameter $\alpha$ for perfectly agreeing original and replication
+  studies. }
 \label{fig:post2d}
 \end{figure}
 
 Figure~\ref{fig:post2d} shows joint and marginal posterior distributions for
 effect size $\theta$ and power parameter $\alpha$ based on the results of the
-three external replication studies. The first replication found an effect
-estimate which was smaller than the original one
-($\that_{r1} = \Sexpr{round(tr[1], 2)}$), whereas the other two replications
+three external replication studies and a power prior for the effect size
+$\theta$ constructed from the original effect estimate
+$\that_{o} = \Sexpr{round(to, 2)}$ (with standard error
+$\sigma_{o} = \Sexpr{round(so, 2)}$) and an initial flat prior
+$f(\theta) \propto 1$. The power parameter $\alpha$ is assigned a uniform
+$\Be(x = \Sexpr{round(x, 2)}, y = \Sexpr{round(y, 2)})$ prior distribution. The
+first replication found an effect estimate which was smaller than the original
+one ($\that_{r1} = \Sexpr{round(tr[1], 2)}$ with
+$\sigma_{r1} = \Sexpr{round(sr[1], 2)}$), whereas the other two replications
 found effect estimates that were either identical
-($\that_{r2} = \Sexpr{round(tr[3], 2)}$) or larger
-($\that_{r3} = \Sexpr{round(tr[2], 2)}$) than that reported in the original
+($\that_{r2} = \Sexpr{round(tr[3], 2)}$ with
+$\sigma_{r2} = \Sexpr{round(sr[2], 2)}$) or larger
+($\that_{r3} = \Sexpr{round(tr[2], 2)}$ with
+$\sigma_{r3} = \Sexpr{round(sr[3], 2)}$) than that reported in the original
 study. This is reflected in the marginal posterior distributions of the power
 parameter $\alpha$, shown in the bottom right panel of Figure~\ref{fig:post2d}.
 That is, the marginal distribution of the first replication (yellow) is slightly
@@ -498,19 +569,26 @@ study. In contrast, the second replication shows a marginal distribution (green)
 which is monotonically increasing so that the value $\alpha = 1$ receives the
 highest support, thereby indicating compatibility of the two studies. Finally,
 the marginal distribution of the third replication (blue) is sharply peaked
-around $\alpha = 0.05$ indicating strong conflict between this replication and
-the original study. The sharply peaked posterior is in stark contrast to the
-relatively diffuse posteriors of the first and second replications which hardly
-changed from the uniform prior. This is consistent with the asymptotic behavior
-of normalized power priors identified in \citet{Pawel2022c}; In case of data
-incompatibility, normalized power priors with beta prior assigned to $\alpha$
-permit arbitrarily peaked posteriors for small values of $\alpha$, whereas in
-case of data compatibility there is a limiting posterior for $\alpha$ that
-hardly differs from the prior. The limiting posterior is in this case a
-$\Be(3/2, 1)$ distribution, whose density is indicated by the dotted line. One
-can see, that the (green) posterior from the second replication is relatively
-close to the limiting posterior, despite its finite sample size.
-
+around $\alpha = 0.05$ with 95\% credible interval from
+$\Sexpr{round(filter(alphaHPD, rnumber == 3)[,"lower"], 2)}$ to
+$\Sexpr{round(filter(alphaHPD, rnumber == 3)[,"upper"], 2)}$ indicating strong
+conflict between this replication and the original study. The sharply peaked
+posterior is in stark contrast to the relatively diffuse posteriors of the first
+and second replications which hardly changed from the uniform prior. This is
+consistent with the asymptotic behavior of normalized power priors identified in
+\citet{Pawel2022c}; In case of data incompatibility, normalized power priors
+with beta prior assigned to $\alpha$ permit arbitrarily peaked posteriors for
+small values of $\alpha$. In contrast, for perfectly agreeing original and
+replication studies ($\that_{o} = \that_{r}$) there is a limiting posterior for
+$\alpha$ that gives only slightly more probability to values near one. The
+limiting posterior is in this case a $\Be(3/2, 1)$ distribution, whose density
+is indicated by the dotted line. One can see, that the (green) posterior from
+the second replication is relatively close to the limiting posterior, despite
+its finite sample size. Similarly, the corresponding (green) 95\% credible
+interval from $\Sexpr{round(filter(alphaHPD, rnumber == 2)[,"lower"], 2)}$ to
+$\Sexpr{round(filter(alphaHPD, rnumber == 2)[,"upper"], 2)}$ suggests that a
+wide range of very low to very high $\alpha$ values remain credible despite the
+excellent agreement of original and replication study.
 
 The bottom left panel of Figure~\ref{fig:post2d} shows the marginal posterior
 distribution of the effect size $\theta$. Shown is also the posterior
@@ -521,49 +599,85 @@ influences how much information is borrowed from the original study. For
 instance, the (green) marginal posterior density based on the most compatible
 replication ($\that_{r2} = \Sexpr{round(tr[3], 2)}$) is the most concentrated
 among the three replications, despite the standard error being the largest
-(\ie{} $\sigma_{r2} = \Sexpr{round(sr[3], 2)}$). In contrast, the (blue)
-marginal posterior of the most conflicting estimate (\ie{}
+($\sigma_{r2} = \Sexpr{round(sr[3], 2)}$). Consequently, the 95\% credible
+interval of $\theta$ is substantially narrower compared to the credible interval
+from the analysis of the replication data in isolation (dashed green). In
+contrast, the (blue) marginal posterior of the most conflicting estimate (\ie{}
 $\that_{r3} = \Sexpr{round(tr[2], 2)}$) borrows less information and
 consequently yields the least peaked posterior, despite the standard error being
 the smallest (\ie{} $\sigma_{r3} = \Sexpr{round(sr[2], 2)}$). In this case, the
 conflict with the original study even inflates the variance of posterior
-compared to the isolated replication posterior given by dashed blue line.
+compared to the isolated replication posterior given by dashed blue line. This
+is, for example, apparent through its 95\% credible interval
+($\Sexpr{round(filter(thetaHPD, rnumber == 3)[,"lower"], 2)}$ to
+$\Sexpr{round(filter(thetaHPD, rnumber == 3)[,"upper"], 2)}$) being even wider
+than the credible interval
+($\Sexpr{round(filter(theta2HPD, rnumber == 3)[,"lower"], 2)}$ to
+$\Sexpr{round(filter(theta2HPD, rnumber == 3)[,"upper"], 2)}$) based on the
+analysis of the replication data in isolation.
+
+
 
 
 \subsection{Hypothesis testing}
 \label{sec:hypothesis-testing}
 
-Apart from the estimation of $\theta$ and $\alpha$, one may also wish to test
-hypotheses regarding these parameters. A principled Bayesian approach is to
-quantify the strength of evidence that the data provide for two competing
-hypotheses $\h{j}$ and $\h{k}$ about the parameters, say, by computing the Bayes
-factor $\BF_{jk}(\that_r) = f(\that_r \given \h{j})/f(\that_r \given \h{k})$,
-with
+In addition to estimating $\theta$ and $\alpha$, we may also be interested in
+testing hypotheses about these parameters. Let $H_{0}$ and $H_{1}$ denote two
+competing hypotheses, each of them with an associated prior
+$f(\theta, \alpha \given H_{i})$ and a resulting marginal likelihood obtained
+from integrating the likelihood of the replication data with respect to the
+prior
 \begin{align}
     \label{eq:marglikpow}
     f(\that_r \given \h{i}) = \int \Nor(\that_r \given \theta, \sigma^2_r) \,
     f(\theta, \alpha \given \h{i}) \,\text{d}\theta\,\text{d}\alpha
 \end{align}
-the marginal likelihood of the replication data $\that_r$ under hypothesis
-$i \in \{k, j\}$. The Bayes factor can either be interpreted as the updating
-factor of the prior odds to the posterior odds of the hypotheses $\h{j}$ and
-$\h{k}$, or as the relative accuracy with which $\h{j}$ and $\h{k}$ predict the
-data \citep{Good1958, Jeffreys1961, Kass1995}.
+for $i \in \{0, 1\}$. A principled Bayesian hypothesis testing approach is to
+compute the Bayes factor
+\begin{align*}
+  \BF_{01}(\that_r)
+  = \frac{\Pr(\h{0} \given \that_r)}{\Pr(\h{1} \given \that_r)}
+  \, \bigg/ \, \frac{\Pr(\h{0})}{\Pr(\h{1})}
+  = \frac{f(\that_r \given \h{0})}{f(\that_r \given \h{1})}
+\end{align*}
+since it corresponds to the updating factor of the prior odds to the posterior
+odds of the hypotheses based on the data $\that_{r}$ (first equality), or
+because it represents the relative accuracy with which the hypotheses predict
+the data $\that_{r}$ (second equality) \citep{Good1958, Jeffreys1961, Kass1995}.
+A Bayes factor $\BF_{01}(\that_r) > 1$ provides evidence for $\h{0}$, whereas a
+Bayes factor $\BF_{01}(\that_r) < 1$ provides evidence for $\h{1}$. The more the
+Bayes factor deviates from one, the larger the evidence. In the following we
+will examine the Bayes factors related to various hypotheses about $\theta$ and
+$\alpha$.
+
+% For example, for the effect size, we may want to test the hypotheses of the
+% effect being absent ($\h{0} \colon \theta = 0$) versus the effect being present
+% ($\h{1} \colon \theta \neq 0$). For the power parameter, we may want to contrast
+% the hypotheses of the data sets being compatible
+% ($\h{\text{c}} \colon \alpha = 1$) versus the data being different
+% ($\h{\text{d}} \colon \alpha < 1$). A principled Bayesian approach is to compute
 
 
 \subsubsection{Hypotheses about the effect size \texorpdfstring{$\boldsymbol{\theta}$}{}}
 
-One is often interested in quantifying the evidence for a non-zero effect size
-$\theta$ by testing $\h{0} \colon \theta = 0$ against
-$\h{1} \colon \theta \neq 0$. This requires the specification of a prior
-distribution for $\theta$ under $\h{1}$, and a natural choice is to use the
-normalized power prior based on the original data along with a beta prior for
-the power parameter as in~\eqref{eq:ppjoint}. The associated Bayes factor is
+Researchers may be interested in testing the null hypothesis that there is no
+effect ($\h{0} \colon \theta = 0$) against the alternative that there is an
+effect ($\h{1} \colon \theta \neq 0$). We note that while the point null
+hypotheses $\h{0}$ is often unrealistic, it is usually a good approximation to
+more realistic interval null hypotheses that assign a distribution tightly
+concentrated around zero \citep{Berger1987b, Ly2022}. Under $\h{0}$ there are no
+free parameters, but under the alternative $\h{1}$ the specification of a prior
+distribution for $\theta$ and $\alpha$ is required. A natural choice is to use
+the normalized power prior based on the original data along with a beta prior
+for the power parameter as in~\eqref{eq:ppjoint}. The associated Bayes factor is
 then given by
 \begin{align}
   \BF_{01}(\that_{r}\given x, y)
-  &= \frac{f(\that_{r} \given \h{0})}{f(\that_{r} \given \h{1})}
-    =  \frac{\Nor(\that_{r}\given 0, \sigma^{2}_{r})}{\int_{0}^{1} \Nor(\that_{r}\given \that_{o},
+  &= \frac{f(\that_{r} \given \h{0} \colon \theta = 0)}{f\{\that_{r} \given \h{1}
+    \colon \theta \given \alpha   \sim \Nor(\that_{o}, \sigma^{2}_{o}/\alpha),
+    \alpha \sim \Be(x, y)\}} \nonumber \\
+    &=  \frac{\Nor(\that_{r}\given 0, \sigma^{2}_{r})}{\int_{0}^{1} \Nor(\that_{r}\given \that_{o},
       % \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \, f(\alpha \given \h{1}) \, \text{d}\alpha}.
     \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \, \Be(\alpha\given x, y) \, \text{d}\alpha}.
     % because of S-D ratio this is also given by
@@ -572,10 +686,13 @@ then given by
   \label{eq:bf01}
 \end{align}
 An intuitively reasonable choice for the prior of $\alpha$ under $\h{1}$ is a
-uniform $\alpha \sim \Be(1, 1)$ distribution. However, it is worth noting that
-assigning a point mass $\alpha = 1$ leads to
+uniform $\alpha \sim \Be(x=1, y=1)$ distribution. However, it is worth
+noting that assigning a point mass $\alpha = 1$ leads to
 \begin{align}
   \BF_{01}(\that_{r}\given \alpha = 1)
+   = \frac{f(\that_{r} \given \h{0} \colon \theta = 0)}{f\{\that_{r} \given \h{1}
+    \colon \theta \given \alpha  \sim \Nor(\that_{o}, \sigma^{2}_{o}/\alpha),
+    \alpha = 1\}}
     =  \frac{\Nor(\that_{r}\given 0, \sigma^{2}_{r})}{ \Nor(\that_{r}\given \that_{o},
     \sigma^{2}_{o} + \sigma^{2}_{r})},
   \label{eq:bfr}
@@ -591,43 +708,60 @@ the original data to be discounted to some degree.
 
 \subsubsection{Hypotheses about the power parameter \texorpdfstring{$\boldsymbol{\alpha}$}{}}
 
-In order to quantify the compatibility between the original and the replication
-study we may be interested in testing hypotheses regarding the power parameter
-$\alpha$. For example, we may wish to test $\h{\text{c}} \colon \alpha = 1$
-(``compatible'') versus $\h{\text{d}} \colon \alpha < 1$ (``different''). One
-approach is to assign a point prior $\h{\text{d}}\colon\alpha = 0$. This leads
-to the issue that for a flat initial prior $f(\theta) \propto 1$, the power
-prior with $\alpha = 0$ is not proper and so the resulting Bayes factor is only
-defined up to an arbitrary constant. Instead of the flat prior, we may thus
-assign an uninformative but proper initial prior to $\theta$, for instance, a
-unit-information prior $\theta \sim \Nor(0, \kappa^{2})$ with $\kappa^{2}$ the
-variance from one (effective) observation \citep{Kass1995b} as it encodes
-minimal prior information about the direction or magnitude of the effect size
-\citep{Best2021}. This leads to the Bayes factor
+To quantify the compatibility between the original and replication study,
+researchers may also be interested in testing hypotheses regarding the power
+parameter $\alpha$. For example, we may want to test the hypothesis that the
+data sets are ``compatible'' and should be completely pooled
+($\h{\text{c}} \colon \alpha = 1$) against the hypothesis that they are
+``different'' and the original data should be discounted to some extent
+($\h{\text{d}} \colon \alpha < 1$).
+
+One approach is to assign a point prior $\h{\text{d}}\colon\alpha = 0$ which
+represents the extreme position that the original data should be completely
+discounted. This leads to the issue that for a flat initial prior
+$f(\theta) \propto 1$, the power prior with $\alpha = 0$ is not proper and so
+the resulting Bayes factor is only defined up to an arbitrary constant. Instead
+of the flat prior, we may thus assign an uninformative but proper initial prior
+to $\theta$, for instance, a unit-information prior
+$\theta \sim \Nor(0, \kappa^{2})$ with $\kappa^{2}$ the variance from one
+(effective) observation \citep{Kass1995b} as it encodes minimal prior
+information about the direction or magnitude of the effect size
+\citep{Best2021}. Updating the unit-information prior by the likelihood of the
+original data raised to the power of $\alpha$ leads then to a
+$\theta \given \alpha \sim \Nor\{\mu_{\alpha} = (\alpha\that_{o})/(\alpha + \sigma^2_{o}/\kappa^{2}), \sigma^{2}_{\alpha} = 1/(1/\kappa^{2} + \alpha/\sigma^{2}_{o})\}$
+distribution, so the Bayes factor is
 \begin{align}
   \BF_{\text{dc}}(\that_{r} \given \kappa^{2})
-  &= \frac{f(\that_{r} \given \h{\text{d}})}{f(\that_{r}
-    \given \h{\text{c}})}
-    = \frac{\Nor(\that_{r}\given0, \sigma^{2}_{r} + \kappa^{2})}{\Nor(\that_{r}\given s  \that_{o}, \sigma^{2}_{r} + s  \sigma^{2}_{o})}
+  = \frac{f\{\that_{r} \given \h{\text{d}}\colon \theta \given \alpha \sim
+    \Nor(\mu_{\alpha}, \sigma^{2}_{\alpha}), \alpha = 0\}}{f\{\that_{r}
+    \given \h{\text{c}}\colon \theta \given \alpha \sim \Nor(\mu_{\alpha}, \sigma^{2}_{\alpha}), \alpha = 1\}}
+    = \frac{\Nor(\that_{r}\given 0, \sigma^{2}_{r} + \kappa^{2})}{\Nor(\that_{r}\given s
+    \that_{o}, \sigma^{2}_{r} + s  \sigma^{2}_{o})}
     \label{eq:bfalpha}
 \end{align}
-with $s = \kappa^{2} / (\sigma^{2}_{o} + \kappa^{2})$.
+with $s = 1 / (1 + \sigma^{2}_{o}/\kappa^{2})$.
 
 An alternative approach that avoids the specification of a proper initial prior
 for $\theta$ is to assign a prior to $\alpha$ under $\h{\text{d}}$. A suitable
 class of priors is given by $\alpha \given \h{\text{d}}\sim \Be(1, y)$ with
 $y > 1$. The $\Be(1, y)$ prior has its highest density at $\alpha = 0$ and is
-monotonically decreasing. The parameter $y$ determines how much mass is assigned
-to small values of $\alpha$. The resulting Bayes factor is then given by
+monotonically decreasing thus representing the more nuanced position that the
+original data should only be partially discounted. The parameter $y$ determines
+the extent of partial discounting and the simple hypothesis
+$\h{\text{d}} \colon \alpha = 0$ can be seen as a limiting case when
+$y \to \infty$. The resulting Bayes factor is given by
 \begin{align}
-  \label{eq:bfdcrandom}
   \BF_{\text{dc}}(\that_{r}\given y)
-  &=  \frac{\int_{0}^{1}\Nor(\that_{r}\given\that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \,
+  &= \frac{f\{\that_{r} \given \h{\text{d}}\colon \theta \given \alpha \sim
+    \Nor(\that_{o}, \sigma^{2}_{o}/\alpha), \alpha \sim \Be(1, y)\}}{f\{\that_{r}
+  \given \h{\text{c}} \colon \theta \given \alpha \sim \Nor(\that_{o}, \sigma^{2}_{o}/\alpha), \alpha = 1\}}
+  \nonumber \\
+  &= \frac{\int_{0}^{1}\Nor(\that_{r}\given\that_{o}, \sigma^{2}_{r} + \sigma^{2}_{o}/\alpha) \,
     \Be(\alpha\given 1, y) \, \text{d}\alpha}{\Nor(\that_{r}\given\that_{o}, \sigma^{2}_{r}
-    + \sigma^{2}_{o})},
+  + \sigma^{2}_{o})}.
+    \label{eq:bfdcrandom}
 \end{align}
-and the simple hypothesis $\h{\text{d}} \colon \alpha = 0$ can be seen as a
-limiting case when $y \to \infty$.
+
 
 
 \subsubsection{Example ``\Sexpr{ex}'' (continued)}
@@ -637,25 +771,36 @@ applied to the three replications of the ``\Sexpr{ex}'' experiment. The Bayes
 factors contrasting $\h{0}\colon \theta = 0$ to $\h{1}\colon \theta \neq 0$ with
 normalized power prior with uniform prior for the power parameter $\alpha$ under
 the alternative (column $\BF_{01}(\hat{\theta}_r \given x =1, y =1)$) indicate
-absence of evidence for either hypothesis in the first replication, but decisive
-evidence for $\h{1}$ in the second and third replication. In all three cases,
-the Bayes factors are close to the standard replication Bayes factors with
-$\alpha = 1$ under the alternative (column
-$\BF_{01}(\hat{\theta}_r \given \alpha = 1)$).
+absence of evidence for either absence or presence of an effect in the first
+replication, but decisive evidence for the presence of an effect in the second
+and third replication. In all three cases, the Bayes factors are close to the
+standard replication Bayes factors with $\alpha = 1$ under the alternative
+(column $\BF_{01}(\hat{\theta}_r \given \alpha = 1)$).
+
+<< "BF-parameters" >>=
+## Parameters for Bayes factors
+k <- sqrt(2) # unit-information standard deviation
+x <- 1 # uniform prior for effect size BF
+y <- 1 # uniform prior for effect size BF
+yd <- 2 # monotonically decreasing prior for power parameter BF
+@
 
 \begin{table}[!htb]
   \centering
-  \caption{Hypothesis tests for replications of experiment ``\Sexpr{ex}'' with
-    original standardized mean difference effect estimate
+  \caption{Hypothesis tests for the replication studies of the ``\Sexpr{ex}''
+    experiment with original standardized mean difference effect estimate
     $\that_{o} = \Sexpr{round(to, 2)}$ and standard error
-    $\sigma_{o} = \Sexpr{round(so, 2)}$. Shown are replication effect estimates
-    $\that_{r}$ with standard errors $\sigma_{r}$, Bayes factors contrasting
-    $\h{0}\colon \theta = 0$ to $\h{1} \colon \theta \neq 0$ with either uniform
-    prior ($x = 1$, $y = 1$) assigned to $\alpha$ or fixed $\alpha = 1$ under
-    $\h{1}$, and Bayes factors contrasting $\h{\text{d}}\colon \alpha < 1$ to
-    $\h{\text{c}}\colon \alpha = 1$ with either initial unit-information prior
-    $\theta \sim \Nor(0, \kappa^2)$ and $\h{\text{d}} \colon \alpha = 0$ or
-    $\alpha \given \h{\text{d}} \sim \Be(1, y)$ prior under $\h{\text{d}}$.}
+    $\sigma_{o} = \Sexpr{round(so, 2)}$. The columns indicate replication effect
+    estimates $\that_{r}$, their standard errors $\sigma_{r}$, Bayes factors
+    contrasting the absence of an effect $\h{0}\colon \theta = 0$ to the
+    presence of an effect $\h{1} \colon \theta \neq 0$ with either a uniform
+    prior $\alpha \sim \Be(x = 1, y = 1)$ or point prior $\alpha = 1$ under
+    $\h{1}$, and Bayes factors contrasting study incompatibility
+    $\h{\text{d}}\colon \alpha < 1$ to study compatibility
+    $\h{\text{c}}\colon \alpha = 1$ with either complete discounting prior (
+    point prior $\alpha = 0$ with initial unit-information prior for $\theta$
+    that has unit variance $\kappa^2 = \Sexpr{k^2}$) or partial discounting
+    prior ($\alpha \sim \Be(1, y)$) under $\h{\text{d}}$.}
   \label{tab:hypothesis}
 \resizebox{1\textwidth}{!}{%
 << "table-Bayes-factors", results = "asis" >>=
@@ -702,12 +847,6 @@ $\BF_{01}(\hat{\theta}_r \given \alpha = 1)$).
 }
 formatBF <- Vectorize(FUN = .formatBF_)
 
-## Parameters for Bayes factors
-k <- sqrt(2) # unit-information standard deviation
-x <- 1 # uniform prior for effect size BF
-y <- 1 # uniform prior for effect size BF
-yd <- 2 # monotonically decreasing prior for power parameter BF
-
 ## Compute BFs for effect sizes and power parameter
 bfDF <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
     bf01 <- bfPPtheta(tr = tr[i], sr = sr[i], to = to, so = so, x = x, y = y)
@@ -753,28 +892,90 @@ the unit-information prior. A crude approximation for the variance of a
 standardized mean difference effect estimate is given by
 $\Var(\that_i) = 4/n_{i}$ with $n_{i}$ the total sample size of the study, and
 assuming equal sample size in both groups \citep[p. 5]{Hedges2021}. We may thus
-set the variance of the unit-information prior to $\kappa^{2} = 2$ since at
-least one observation from each group is required to estimate a standardized
-mean difference (assuming the variance is known). Based on this choice, the
+set the variance of the unit-information prior to $\kappa^{2} = 2$ since a total
+sample size of $n_{i} = 2$ (at least one observation from each group) is
+required to estimate a standardized mean difference. Based on this choice, the
 Bayes factors $\BF_{\text{dc}}(\hat{\theta}_r \given \kappa^2 =2)$ in
 Table~\ref{tab:hypothesis} indicate that the data provide substantial and strong
-evidence for $\h{\text{c}}$ in the first and second replication study,
-respectively, whereas the data indicate strong evidence for $\h{\text{d}}$ in
-the third replication study. The Bayes factor
-$\BF_{\text{dc}}(\hat{\theta}_r \given y = 2)$ in the right-most column with
-$\alpha \given \h{\text{d}} \sim \Be(1, 2)$ prior assigned under the hypothesis
-$\h{\text{d}}$ indicates absence of evidence for either hypothesis in the first
-and second replication, but strong evidence for $\h{\text{d}}$ in the third
-replication. Compared to the Bayes factor with $\h{\text{c}}\colon \alpha = 0$,
-the results are thus more ambiguous for the first two replications but more
-compelling for the third replication.
+evidence for the compatibility hypothesis $\h{\text{c}}$ in the first and second
+replication study, respectively, whereas the data indicate strong evidence for
+complete incompatibility $\h{\text{d}}$ in the third replication study. The
+Bayes factor $\BF_{\text{dc}}(\hat{\theta}_r \given y = 2)$ in the right-most
+column with the partial discounting prior $\alpha \sim \Be(1, y = 2)$ assigned
+under the hypothesis $\h{\text{d}}$ indicates absence of evidence for either
+hypothesis in the first and second replication, but strong evidence for
+incompatibility $\h{\text{d}}$ in the third replication. The apparent
+differences to the Bayes factor with the complete discounting prior (column
+$\BF_{\text{dc}}(\hat{\theta}_r \given \kappa^2 =2)$) illustrate that in case of
+no conflict (study 2) or not too much conflict (study 1) the test with the
+partial discounting prior is less sensitive in inferring (in)compatibility, but
+in case of substantial conflict (study 3) it is more sensitive. This analysis is
+based on a prior with $y = 2$ corresponding to a linearly decreasing prior for
+$\alpha$, Figure~\ref{fig:sensitivityPrior} shows the Bayes factor for other
+values of $y$. We see that in the realistic range of $y = 1$ (uniform prior) to
+$y = 100$ (almost all mass at $\alpha = 0$) the results for the first and third
+replication hardly change, while the for the second replication the Bayes factor
+shifts from anecdotal evidence to stronger evidence for compatibility.
+
+\begin{figure}[!htb]
+<< "bf-sensitivity", fig.height = 3.25 >>=
+## aseq <- seq(0, 1, 0.01)
+## plot(aseq, dbeta(aseq, 1, 100), type = "l")
+yseq <- seq(1.001, 100, 0.1)
+## Compute BFs for effect sizes and power parameter
+bfDF2 <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    bfdcRandom <- sapply(X = yseq, FUN = function(y) {
+        bfPPalpha(tr = tr[i], sr = sr[i], to = to, so = so, y = y)
+    })
+    out <- data.frame(number = rnumber[i], tr = tr[i], sr = sr[i],
+                      bfdcRandom = bfdcRandom, y = yseq)
+    return(out)
+}))
+bfDF2$trFormat <- paste0("{hat(theta)[italic('r')*", bfDF2$number, "] == ",
+                         round(bfDF2$tr, 2), "}*',' ~ sigma[italic('r')*",
+                         bfDF2$number, "] == ", round(bfDF2$sr, 2))
+
+bfbks <- c(1/100, 1/30, 1/10, 1/3, 1, 3, 10, 30, 100)
+bflabs <- formatBF(BF = bfbks)
+ggplot(data = bfDF2, aes(x = y, y = bfdcRandom, color = trFormat)) +
+    annotate(geom = "segment", x = 0.95, xend = 0.95, y = 1.1, yend = 11,
+             arrow = arrow(type = "closed", length = unit(0.02, "npc")), alpha = 0.95,
+             color = "darkgrey") +
+    annotate(geom = "segment", x = 0.95, xend = 0.95, y = 1/1.1, yend = 1/11,
+             arrow = arrow(type = "closed", length = unit(0.02, "npc")), alpha = 0.95,
+             color = "darkgrey") +
+    annotate(geom = "text", x = 0.88, y = 3.5, label = "incompatible", angle = 90,
+             alpha = 0.7, size = 2.5) +
+    annotate(geom = "text", x = 0.88, y = 1/3.5, label = "compatible", angle = 90,
+             alpha = 0.7, size = 2.5) +
+    geom_hline(yintercept = 1, lty = 2, alpha = 0.2) +
+    geom_line(linewidth = 0.7) +
+    scale_y_log10(breaks = bfbks, labels = bflabs) +
+    scale_x_log10(breaks = bfbks) +
+    coord_cartesian(xlim = c(min(yseq), max(yseq)), ylim = c(1/45, 45)) +
+    scale_color_manual(values = colblind, labels = scales::parse_format()) +
+    labs(x = bquote("Prior parameter" ~ italic(y)),
+         y = bquote("BF"["dc"] * "("* hat(theta)[italic("ri")] ~ "|" ~ italic(y) * ")"),
+         color = "") +
+    theme_bw() +
+    theme(panel.grid.minor = element_blank(),
+          legend.position = "top")
+@
+\caption{Sensitivity analysis on the sensitivity of the Bayes factor
+  $\BF_{\text{dc}}(\hat{\theta}_r \given y)$ with respect to the parameter
+  $y$ of the partial discounting prior $\alpha \sim \Be(1, y)$ under the
+  hypothesis of incompatibility $\h{\text{d}}\colon \alpha < 1$.}
+\label{fig:sensitivityPrior}
+\end{figure}
 
 To conclude, our analysis suggests that only the second replication was
-successful in the sense that it is both compatible with the original study while
-also providing evidence against a null effect. The first replication is
-compatible but does not provide evidence for a non-zero effect, whereas the
-third replication provides much evidence for a a non-zero effect but is
-incompatible with the original study.
+completely successful in the sense that it is both compatible with the original
+study while also providing evidence for the presence of an effect. For the other
+two replications the conclusions are more nuanced: In the first replication
+there is no evidence for incompatibility with the original study but absence of
+evidence for presence or absence of an effect. In the third replication there is
+decisive evidence for an effect but also strong evidence for incompatibility
+with the original study.
 
 \subsubsection{Bayes factor asymptotics}
 
@@ -797,7 +998,10 @@ what happens when the standard error of the replication study $\sigma_{r}$
 becomes arbitrarily small (through an increase in sample size). Assume that
 $\that_{r}$ is a consistent estimator of its true underlying effect size
 $\theta_r$, so that as the standard error $\sigma_r$ goes to zero, the estimate
-will converge in probability to the true effect size $\theta_r$.
+will converge in probability to the true effect size $\theta_r$. The true
+replication effect size $\theta_{r}$ may be different from the true original
+effect size $\theta_{o}$, for example, because the participant populations from
+both studies systematically differ.
 
 The limiting Bayes factors for testing the effect size $\theta$
 from~\eqref{eq:bf01} and~\eqref{eq:bfr} are then given by
@@ -844,7 +1048,9 @@ Similarly, the bound~\eqref{eq:boundcomposite} is minimized for
 $\theta_r = \that_{o} = 0.21$ since then the confluent hypergeometric function
 term becomes one, leading to
 $\lim_{\sigma_{r} \downarrow 0} \BF_{\text{dc}} (\theta_r\given y = 2) = \mbox{B}(3/2, y)/\mbox{B}(1,y) = \Sexpr{formatBF(bfBound2)}$.
-Even in a perfectly precise replication study we cannot find more evidence.
+Even in a perfectly precise replication study we cannot find more evidence, and
+the hence the posterior probability of $\h{\text{c}}\colon \alpha = 1$ cannot
+converge to one.
 
 
 While the Bayes factors~\eqref{eq:bfalpha} and~\eqref{eq:bfdcrandom} are
@@ -853,10 +1059,10 @@ situation is different when also the original data become arbitrarily
 informative (reflected by also the standard error $\sigma_o$ going to zero and
 the original effect estimate $\that_o$ converging to its true effect size
 $\theta_o$). The Bayes factor with $\h{\text{d}}\colon \alpha = 0$
-from~\eqref{eq:bfalpha} is then consistent as the the
-limit~\eqref{eq:boundsimple} goes correctly to infinity/zero if the true effect
-size of the replication study $\theta_r$ is different/equivalent from the true
-effect size of the original study $\theta_o$. In contrast, the Bayes factor with
+from~\eqref{eq:bfalpha} is then consistent as the limit~\eqref{eq:boundsimple}
+goes correctly to infinity/zero if the true effect size of the replication study
+$\theta_r$ is different/equivalent from the true effect size of the original
+study $\theta_o$. In contrast, the Bayes factor with
 $\alpha \given \h{\text{d}} \sim \Be(1, y)$ from~\eqref{eq:bfdcrandom} is still
 inconsistent since it only shows the correct asymptotic behavior when the true
 effect sizes are unequal (\ie{} the Bayes factor goes to infinity) but not when
@@ -866,15 +1072,21 @@ $\mbox{B}(3/2, y)/\mbox{B}(1,y)$.
 \subsection{Design of replication studies}
 \label{sec:design}
 Now assume that the replication study has not yet been conducted and we wish to
-plan for a suitable sample size for a hypothesis test as described previously.
-In the case of the replication Bayes factor under normality~\eqref{eq:bfr},
-\citet{Pawel2020b} derived the probability of replication success in closed form
-under $\h{0}$ and $\h{1}$. Based on their result, standard Bayesian design
-analysis \citep{Weiss1997, DeSantis2004, Schoenbrodt2017} can be conducted to
-determine the appropriate replication sample size. For the generalized
-replication Bayes factor~\eqref{eq:bf01}, numerical integration or simulation is
-required to compute the probability of replication success as the marginal
-likelihood is not available in closed form under $\h{1}$ in general.
+plan for a suitable sample size. The design of replication studies should be
+aligned with the planned analysis \citep{Anderson2017} and if multiple analyses
+are performed, a sample size may be calculated that guarantees a sufficiently
+conclusive analysis in each case. For example, sample size calculations may be
+performed based on posterior tail probabilities as in \citet{Pawel2022d}. Here,
+we focus on sample size calculations based on the hypothesis tests described
+previously. In the case of the replication Bayes factor under
+normality~\eqref{eq:bfr}, \citet{Pawel2020b} derived the probability of
+replication success in closed form under $\h{0}$ and $\h{1}$. Based on their
+result, standard Bayesian design \citep{Weiss1997, DeSantis2004,
+  Schoenbrodt2017} can be conducted to determine the appropriate replication
+sample size. For the generalized replication Bayes factor~\eqref{eq:bf01},
+numerical integration or simulation is required to compute the probability of
+replication success as the marginal likelihood is not available in closed form
+under $\h{1}$ in general.
 
 It is also possible to derive the probability of replication success at some
 level $\gamma$ analytically for the Bayes factor~\eqref{eq:bfalpha}. With some
@@ -1207,9 +1419,9 @@ $\tau^2$ and the variance of the original estimate $\sigma^2_o$, that is,
 \end{align*}
 with inverse of the same functional form. Figure~\ref{fig:I2} shows $\alpha$ and
 the corresponding $\tau^2$ and $I^2$ values which lead to matching posteriors.
-The relationship between $I^2$ and $\alpha$ seems not too far off from linear.
-Therefore, a rough and ready heuristic to connect power priors to hierarchical
-models is $\alpha \approx 1 - I^2$.
+% The relationship between $I^2$ and $\alpha$ seems not too far off from linear.
+% Therefore, a rough and ready heuristic to connect power priors to hierarchical
+% models is $\alpha \approx 1 - I^2$.
 
 \begin{figure}[!htb]
 << "figure-I2-alpha", fig.height = 3 >>=
@@ -1421,14 +1633,14 @@ $f(\tau^{2}) \propto \sigma^{2}_{o}/(\tau^{2} + \sigma^{2}_{o})^{2}$
 \citep{Daniels1999}. This prior has the highest density at $\tau^{2} = 0$ but
 still gives some mass to larger values of $\tau^{2}$. Similarly, on the scale of
 $I^2$ the prior slightly favors smaller values. The middle row of
-Figure~\ref{fig:matchingpriors} shows that the $\alpha \sim \Be(2, 1)$
-prior--indicating more compatibility between original and replication than the
-uniform prior--gives even more mass to small values of $\tau^{2}$ and $I^2$, and
-also has the highest density at $\tau^2 = 0$ and $I^2 = 0$. In contrast, the
+Figure~\ref{fig:matchingpriors} shows that the $\alpha \sim \Be(2, 1)$ prior
+---indicating more compatibility between original and replication than the
+uniform prior--- gives even more mass to small values of $\tau^{2}$ and $I^2$,
+and also has the highest density at $\tau^2 = 0$ and $I^2 = 0$. In contrast, the
 bottom row of Figure~\ref{fig:matchingpriors} shows that the
-$\alpha \sim \Be(1, 2)$ prior--indicating less compatibility between original
-and replication than the uniform prior--gives less mass to small $\tau^{2}$ and
-$I^2$, and has zero density at $\tau^{2} = 0$ and $I^2 = 0$.
+$\alpha \sim \Be(1, 2)$ prior ---indicating less compatibility between original
+and replication than the uniform prior--- gives less mass to small $\tau^{2}$
+and $I^2$, and has zero density at $\tau^{2} = 0$ and $I^2 = 0$.
 
 \subsection{Connection to hypothesis testing in hierarchical models}
 
@@ -1463,9 +1675,9 @@ it matches with the Bayes factor contrasting $\h{0} \colon \theta_* = 0$ versus
 $\h{1} \colon \theta_* \neq 0$ with
 \begin{align*}
   &\h{0}\colon \theta_{*} = 0& &\text{versus}&
-  \theta_{*} \given \tau^{2}, \h{1} &\sim \Nor(\that_{o}, \sigma^{2}_{o} + \tau^{2}) \\
+  \h{1}\colon \theta_{*} \given \tau^{2} &\sim \Nor(\that_{o}, \sigma^{2}_{o} + \tau^{2}) \\
   &\phantom{\h{0}\colon} \tau^{2} = 0& &&
-  \tau^2 \given \h{1}&\sim \mbox{GF}(y, x, \sigma^2_o/2)
+  \tau^2 &\sim \mbox{GF}(y, x, \sigma^2_o/2)
 %   f(\tau^{2}) = \Be\left\{\alpha = \sigma^{2}_{o}/(\sigma^{2}_{o} +
 %     2\tau^{2})\given x, y\right\}
 %     (2\sigma^{2}_{o})/(2\tau^{2} + \sigma^{2}_o)^{2}&
@@ -1506,15 +1718,15 @@ $\h{\text{d}}\colon \alpha < 1$ versus $\h{\text{c}}\colon \alpha = 1$
 with $\alpha \given \h{\text{d}} \sim \Be(1, y)$
 corresponds to testing $\h{\text{d}}\colon \tau^2 > 0$ versus $\h{\text{c}}\colon \tau^2 = 0$ with
 \begin{align*}
-  \theta_{*} \given \tau^{2}, \h{\text{d}} &\sim \Nor(\that_{o}, \sigma^{2}_{o} + \tau^{2})
+  \h{\text{d}}\colon \theta_{*} \given \tau^{2} &\sim \Nor(\that_{o}, \sigma^{2}_{o} + \tau^{2})
 %   f(\tau^{2}) = \Be\left\{\alpha = \sigma^{2}_{o}/(\sigma^{2}_{o} +
 %     2\tau^{2})\given 1, y\right\}
 %     (2\sigma^{2}_{o})/(2\tau^{2} + \sigma^{2}_o)^{2}
   % f\{\tau^{2} = (1/\alpha - 1)\, (\sigma^{2}_{o}/2)\}\{\sigma^{2}_{o}/(2\alpha^{2})\} &
   &\text{versus}& &
-  \theta_{*} \given \tau^{2},\h{\text{c}} &\sim \Nor(\that_{o}, \sigma^{2}_{o} + \tau^{2}) \\
-  \tau^2 \given \h{\text{d}}&\sim \mbox{GF}(y, 1, \sigma^2_o/2) &&&
-  \h{\text{c}}\colon \tau^{2}&= 0
+  \h{\text{c}} \colon \theta_{*} \given \tau^{2} &\sim \Nor(\that_{o}, \sigma^{2}_{o} + \tau^{2}) \\
+  \tau^2  &\sim \mbox{GF}(y, 1, \sigma^2_o/2) &&&
+  \tau^{2}&= 0
 \end{align*}
 The test for compatibility via the power parameter $\alpha$ is thus equivalent
 to a test for compatibility via the heterogeneity $\tau^2$ (to which a
@@ -1563,36 +1775,100 @@ inverse gamma prior for $\tau^2$ implies a prior for $\alpha$ with density
 \end{align}
 The Bayes factor contrasting $\h{\text{c}}\colon \alpha = 1$ versus
 $\h{\text{d}}\colon \alpha < 1$ with prior~\eqref{eq:igalpha} assigned to
-$\alpha$ under $\h{\text{d}}$ will thus produce a consistent test. Importantly,
-the prior~\eqref{eq:igalpha} depends on the variance of the original effect
-estimate $\sigma^2_o$, so that original studies with different variances will
-result in different priors on $\alpha$, even when the parameters $s$ and $t$
-from the prior stay the same. The prior thus ``unscales'' $\alpha$ from the
-original variance $\sigma^2_o$, thereby leading to a consistent test for study
-compatibility and resolving the undesirable property of the beta prior.
+$\alpha$ under $\h{\text{d}}$ will thus produce a consistent test. The prior is
+shown in Figure~\ref{fig:priorconsistent} for different parameters $q$ and $r$
+and original standard errors $\sigma_{o}$. We see that the prior depends on the
+standard error of the original effect estimate $\sigma_o$, the smaller
+$\sigma_{o}$ the more the prior is shifted towards zero. For example, the
+standard error $\sigma_{o} = \Sexpr{round(so, 2)}$ from the ``Labels''
+experiment leads to priors that are almost indistinguishable from a point mass
+at $\alpha = 0$.
+% Original studies with different standard errors will
+% result in different priors on $\alpha$, even when the parameters $q$ and $r$
+% from the prior stay the same.
+The prior thus ``unscales'' $\alpha$ from the
+original standard error $\sigma_o$, thereby leading to a consistent test for
+study compatibility and resolving the inconsistency property of the beta prior.
 
+\begin{figure}[!htb]
+<< "consistent-prior", fig.height = 5 >>=
+## prior for alpha that leads to consistent test
+falpha <- function(alpha, q, r, so) {
+    r^q/gamma(x = q)*alpha^(q - 1)/(1 - alpha)^(q + 1)*(2/so^2)^q*
+        exp(-2*r*alpha/so^2/(1 - alpha))
+}
+applyGrid <- expand.grid(q = c(0.5, 1, 2), r = c(0.5, 1, 2),
+                         so = c(0.05, 0.5, 1))
+aseq <- c(seq(0, 0.1, 0.00001), seq(0.101, 1, 0.001))
+plotDF <- lapply(X = seq(1, nrow(applyGrid)), FUN = function(i) {
+    r <- applyGrid$r[i]
+    q <- applyGrid$q[i]
+    so <- applyGrid$so[i]
+    ## int <- integrate(f = falpha, lower = 0, upper = 1, q = q, r = r, so = so)$value
+    data.frame(alpha = aseq,
+               density = falpha(alpha = aseq, q = q, r = r, so = so),
+               q = q, r = r, so = round(so, 2))
+}) %>%
+    bind_rows()
+
+ggplot(data = plotDF, aes(x = alpha, y = density, color = factor(so))) +
+    facet_grid(q ~ r, scales = "free",
+               labeller = label_bquote(cols = italic(r) == .(r),
+                                       rows = italic(q) == .(q))) +
+    geom_line(alpha = 0.9, linewidth = 0.7) +
+    coord_cartesian(ylim = c(0, 9)) +
+    scale_color_viridis_d() +
+    theme_bw() +
+    labs(x = bquote("Power parameter" ~ alpha), y = "Density",
+         color = bquote("Original standard error" ~ sigma[o])) +
+    theme(panel.grid.minor = element_blank(),
+          legend.position = "top")
+@
+\caption{Prior for the power parameter $\alpha$ implied by an inverse gamma
+  prior $\tau^2 \given \h{\text{d}} \sim \mbox{IG}(q, r)$ in a hierarchical
+  model with consistent test for $\h{\text{c}}\colon \tau^{2} = 0$ versus
+  $\h{\text{d}}\colon \tau^{2} > 0$.}
+\label{fig:priorconsistent}
+\end{figure}
 
 \section{Discussion}
 \label{sec:discussion}
 
 We showed how the power prior framework can be used for design and analysis of
 replication studies. The approach supplies analysts with a suite of methods for
-assessing effect sizes and study compatibility. We also showed how the power
-prior approach is connected to hierarchical modeling, and gave conditions under
-which posterior distributions and hypothesis tests correspond between normal
-power prior models and normal hierarchical models. This connection provides an
-intuition for why even with highly precise and compatible original and
-replication study one can hardly draw conclusive inferences about the power
-parameter $\alpha$; the power parameter $\alpha$ has a direct correspondence to
-the relative heterogeneity variance $I^2$, and an indirect correspondence to the
-heterogeneity variance $\tau^2$ in a hierarchical model. Making inferences about
-a heterogeneity variance from two studies alone seems like a virtually
-impossible task since the ``unit of information'' is the number of studies and
-not the number of samples within a study. Moreover, Bayes factor hypothesis
-tests related to $\alpha$ have the undesirable asymptotic property of
-inconsistency if a beta prior is assigned to $\alpha$. This is because the prior
-scales with the variance of the original data, just as a beta prior for $I^2$
-would in a hierarchical model.
+assessing effect sizes and study compatibility. Both aspects can be tackled from
+an estimation or a hypothesis testing perspective, and the choice between the
+two is primarily philosophical. We believe that both perspectives provide
+valueable inferences that complement each other. Visualizations of joint and
+marginal posterior distributions are highly informative in terms of the
+available uncertainty. However, the power parameter $\alpha$ is an abstract
+quantity disconnected from actual scientific phenomena. Testing hypotheses of
+complete discounting versus complete pooling may therefore be more intuitive for
+researchers. Both approaches also suffer from similar problems: If the original
+and replication data are in perfect agreement, the posterior distribution of
+$\alpha$ hardly changes from the prior \citep{Pawel2022c}. Similarly, Bayes
+factors for testing the compatibility hypothesis $\h{\text{c}}\colon \alpha = 1$
+are inconsistent.
+
+We also showed how the power prior approach is connected to hierarchical
+modeling, and gave conditions under which posterior distributions and hypothesis
+tests correspond between normal power prior models and normal hierarchical
+models. This connection provides an intuition for why even with highly precise
+and compatible original and replication study one can hardly draw conclusive
+inferences about the power parameter $\alpha$; the power parameter $\alpha$ has
+a direct correspondence to the relative heterogeneity variance $I^2$, and an
+indirect correspondence to the heterogeneity variance $\tau^2$ in a hierarchical
+model. Making inferences about a heterogeneity variance from two studies alone
+seems like a virtually impossible task since the ``unit of information'' is the
+number of studies and not the number of samples within a study. Moreover, Bayes
+factor hypothesis tests related to $\alpha$ have the undesirable asymptotic
+property of inconsistency if a beta prior is assigned to $\alpha$. This is
+because the prior scales with the variance of the original data, just as a beta
+prior for $I^2$ would in a hierarchical model. The identified link may also have
+computational advantages, e.g., it may be possible to estimate power prior
+models using the hierarchical model estimation procedures, or vice versa, but
+more research is needed on the connection in more situations that depart from
+normality assumptions.
 
 
 Which of the two approaches should data analysts use in practice? We believe
@@ -1625,35 +1901,27 @@ priors can be reverse-engineered within the framework of power priors through
 Bayesian model averaging over two hypotheses about the power parameter; however,
 more research is needed to explore the relationship between the two approaches.
 
-The proposed methods rely on the standard meta-analytic assumption of
-approximate normality of effect estimates. This assumption might be inadequate
-in some situations, for example, when studies have small sample sizes. In this
-case, the methods could be modified to use the exact likelihood of the data
-(\eg{} binomial or $t$). However, using the exact likelihood would require
-numerical methods for the evaluation of integrals which can be evaluated
+The proposed methods are based on the standard meta-analytic assumption of
+approximate normality of effect estimates with known variances. This makes our
+methodology applicable to a wide range of effect sizes that may arise from
+different data models. However, in some situations this assumption may be
+inadequate, for example, when studies have small sample sizes. In this case, the
+methods could be modified to use the exact likelihood of the data (\eg{}
+binomial or $t$), as in \citet{Bayarri2002}, who used a $t$ likelihood. However,
+the methodology would need to be adapted for each effect size type. Therefore,
+future work may examine specific data models in more detail to obtain more
+precise inferences. In this case, however, using the exact likelihood typically
+requires numerical methods to evaluate integrals that can be evaluated
 analytically under normality.
 
-\section*{Software and data}
-The CC-By Attribution 4.0 International licensed data were downloaded from
-\url{https://osf.io/42ef9/}. All analyses were conducted in the R programming
-language version \Sexpr{paste(version$major, version$minor, sep = ".")}
-\citep{R}. The code and data to reproduce this manuscript is available at
-\url{https://github.com/SamCH93/ppReplication}. A snapshot of the GitHub
-repository at the time of writing this article is archived at
-\url{https://doi.org/10.5281/zenodo.6940238}. We also provide an R package for
-estimation and testing under the power prior framework with documentation and
-example code at \url{https://github.com/SamCH93/ppRep}.
-
-\section*{Acknowledgments}
-We thank \citet{Protzko2020} for publicly sharing their data. We thank
-Małgorzata Roos for helpful comments on a draft of the manuscript. This work was
-supported in part by an NWO Vici grant (016.Vici.170.083) to EJW, an Advanced
-ERC grant (743086 UNIFY) to EJW, and a Swiss National Science Foundation
-mobility grant (189295) to LH and SP.
-% Our acknowledgement of these individuals does not imply their endorsement of this article.
-
-\section*{Conflict of interest}
-The authors have no conflicts of interest to declare.
+We primarily focused on the evaluation of (objective) Bayesian properties of the
+proposed methods. Further work is needed to evaluate their frequentist
+properties, for example, with a carefully planned simulation study
+\citep{Morris2019}. As in other recent studies \citep{Muradchanian2021,
+  Freuli2022}, it would be interesting to simulate the realistic scenario of
+questionable research practices and publication bias affecting the original
+study to see how the adaptive downweighting of power priors can account for the
+inflated original results.
 
 % \section*{Highlights}
 
@@ -1813,9 +2081,31 @@ density function
 follows a generalized F distribution \citep[in the parametrization
 of][]{PhamGia1989}.
 
-
 \end{appendices}
 
+\section*{Software and data}
+The CC-By Attribution 4.0 International licensed data were downloaded from
+\url{https://osf.io/42ef9/}. All analyses were conducted in the R programming
+language version \Sexpr{paste(version$major, version$minor, sep = ".")}
+\citep{R}. The code and data to reproduce this manuscript is available at
+\url{https://github.com/SamCH93/ppReplication}. A snapshot of the GitHub
+repository at the time of writing this article is archived at
+\url{https://doi.org/10.5281/zenodo.6940238}. We also provide an R package for
+estimation and testing under the power prior framework with documentation and
+example code at \url{https://github.com/SamCH93/ppRep}.
+
+\section*{Acknowledgments}
+We thank \citet{Protzko2020} for publicly sharing their data. We thank
+Małgorzata Roos for helpful comments on a draft of the manuscript. We thank the
+associate editor and the two anonymous reviewers for helpful comments and
+suggestions. This work was supported in part by an NWO Vici grant
+(016.Vici.170.083) to EJW, an Advanced ERC grant (743086 UNIFY) to EJW, and a
+Swiss National Science Foundation mobility grant (189295) to LH and SP.
+% Our acknowledgement of these individuals does not imply their endorsement of this article.
+
+
+\section*{Conflict of interest}
+The authors have no conflicts of interest to declare.
 
 % Bibliography
 %% ------------------------------------------------------------------------------
