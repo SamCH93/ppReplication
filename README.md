@@ -50,7 +50,4 @@ make drunpdf
 this should output the file `ppreplication.pdf` in the paper directory. The
 Docker approach takes a bit longer but reruns our analyses in a Docker container
 which encapsulates the computational environment (R and R package versions) that
-was used in the original analysis. The only way this approach could become
-irreproducible is when the [rocker/verse](https://hub.docker.com/r/rocker/verse)
-base image becomes unavailable and/or the MRAN snapshot of CRAN becomes
-unavailable.
+was used in the original analysis. 
