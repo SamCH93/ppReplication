@@ -1,3 +1,4 @@
+ppRep
 knitr
 ggplot2
 colorspace

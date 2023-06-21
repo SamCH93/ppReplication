@@ -1,5 +1,5 @@
 ## set R version (https://hub.docker.com/r/rocker/verse/tags)
-FROM rocker/verse:4.2.1
+FROM rocker/verse:4.3
 
 ## name of the manuscript (as in Makefile and paper/Makefile)
 ENV FILE=ppreplication
@@ -22,9 +22,6 @@ WORKDIR /analysis
 RUN install2.r --error --skipinstalled --ncpus -1 \
     `cat CRANpackages.txt`
 
-## install R packages from GitHub (use @ for specific version/tag)
-RUN installGithub.r \
-    SamCH93/ppRep@preprint
 
 ## knit Rnw to tex and compile tex to PDF
 CMD if [ "$pdfdocker" = "false" ] ; then \

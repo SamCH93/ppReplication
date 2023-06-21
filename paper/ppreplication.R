@@ -19,7 +19,7 @@ library(xtable) # LaTeX tables
 library(dplyr) # easier data manipulation
 library(hypergeo) # confluent hypergeometric function
 library(ReplicationSuccess) # for data set
-library(gridExtra) # combining plots
+library(ggpubr) # combining plots
 
 
 ## ----"data"-------------------------------------------------------------------
@@ -48,8 +48,8 @@ x <- 1
 y <- 1
 
 
-## ----"computing-posterior-distribution", fig.height = 6, cache = TRUE---------
-## Parameter grid to compute posterior density for
+## ----"posterior-distribution", fig.height = 6, cache = TRUE-------------------
+## Parameter grid to compute posterior density
 nalpha <- 200
 ntheta <- 200
 alphaseq <- seq(0, 1, length.out = nalpha)
@@ -163,7 +163,7 @@ alphaLimitDF <- data.frame(x = alphaseq,
                            density = dbeta(x = alphaseq, x + 0.5, y),
                            parameter = "'Power parameter' ~ alpha")
 
-## ----"figure-posterior-distribution", fig.height = 6--------------------------
+## ----"Fig1-posterior-distribution", fig.height = 6----------------------------
 ## colorblind friendly scale
 ncat <- length(unique(margplotDF$trFormat))
 colblind <- palette.colors(n = ncat + 1, palette = "Okabe-Ito")[2:(ncat + 1)]
@@ -177,7 +177,7 @@ plotBot <- ggplot() +
                        height = height), alpha = 0.8) +
     geom_errorbarh(data = theta2HPD,
                    aes(xmin = lower, xmax = upper, y = y*1.05, color = trFormat,
-                       height = height), alpha = 0.7, linetype = "dashed") +
+                       height = height), alpha = 0.7, linetype = "22") +
     geom_line(data = thetaplotDF2, aes(x = x, y = density, color = trFormat),
                   lty = 2, alpha = 0.5, size = 0.7) +
     geom_line(data = margplotDF, aes(x = x, y = density, color = trFormat),
@@ -193,8 +193,7 @@ plotBot <- ggplot() +
           legend.text.align = 0, strip.text.x = element_text(size = 11))
 
 ## Combine all plots
-grid.arrange(plotTop, plotBot, ncol = 1)
-## ggpubr::ggarrange(plotTop, plotBot, ncol = 1, heights = c(0.5, 0.5))
+ggpubr::ggarrange(plotTop, plotBot, ncol = 1)
 
 
 ## ----"BF-parameters"----------------------------------------------------------
@@ -274,37 +273,53 @@ xtab <- xtable(dfTab)
 colnames(xtab) <- c("",
                     "$\\hat{\\theta}_r$",
                     "$\\sigma_r$",
-                    paste0("$\\BF_{01}(\\hat{\\theta}_r \\given x =", x, ", y =", y, ")$"),
-                    "$\\BF_{01}(\\hat{\\theta}_r \\given \\alpha = 1)$",
-                    paste0("$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given \\kappa^2 =",
-                           k^2, ")$"),
-                    paste0("$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given y = ",
-                           yd, ")$"))
+                    paste0("$\\BF_{01}\\{\\hat{\\theta}_r \\given \\h{1} \\colon \\alpha \\sim \\Be(",
+                           x, ", ", y, ")\\}$"),
+                    "$\\BF_{01}(\\hat{\\theta}_r \\given \\h{1} \\colon \\alpha = 1)$",
+                    ## paste0("$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given \\kappa^2 =",
+                    ##        k^2, ")$"),
+                    paste0("$\\BF_{\\text{dc}}(\\hat{\\theta}_r \\given \\h{\\text{d}} \\colon \\alpha = 0)$"),
+                    paste0("$\\BF_{\\text{dc}}\\{\\hat{\\theta}_r \\given \\h{\\text{d}} \\colon \\alpha \\sim \\Be(1, ",
+                           yd, ")\\}$"))
 align(xtab) <- rep("c", length(colnames(xtab)) + 1)
-print(xtab, floating = FALSE, include.rownames = FALSE,
-      sanitize.text.function = function(x){x}, booktabs = TRUE)
+
+## add multicolumns for effet size test and power parameter test
+addtorow <- list()
+addtorow$pos <- list(-1)
+addtorow$command <- '\\toprule & & & \\multicolumn{2}{c}{Tests about the effect size $\\theta$} & \\multicolumn{2}{c}{Tests about the power parameter $\\alpha$} \\\\ \\cmidrule(lr){4-5} \\cmidrule(lr){6-7}'
 
 
-## ----"bf-sensitivity", fig.height = 3.25--------------------------------------
-## aseq <- seq(0, 1, 0.01)
-## plot(aseq, dbeta(aseq, 1, 100), type = "l")
-yseq <- seq(1.001, 100, 0.1)
-## Compute BFs for effect sizes and power parameter
+print(xtab, floating = FALSE, include.rownames = FALSE, add.to.row = addtorow,
+      sanitize.text.function = function(x){x}, booktabs = TRUE, hline.after = c(0, nrow(xtab)))
+
+
+## ----"Fig2-BF-sensitivity", fig.height = 3.25---------------------------------
+## Compute BFs for a grid of prior parameters to see how robust results are
+yseq <- xseq <- exp(seq(log(1.001), log(100), 0.1))
 bfDF2 <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    ## simple vs. composite BF
     bfdcRandom <- sapply(X = yseq, FUN = function(y) {
         bfPPalpha(tr = tr[i], sr = sr[i], to = to, so = so, y = y)
     })
+    ## composite vs. composite BF
+    bfdcRandomFull <- sapply(X = xseq, FUN = function(x) {
+        fd <- margLik(tr = tr[i], sr = sr[i], to = to, so = so, x = 1, y = 2)
+        fc <- margLik(tr = tr[i], sr = sr[i], to = to, so = so, x = x, y = 1)
+        fd/fc
+    })
     out <- data.frame(number = rnumber[i], tr = tr[i], sr = sr[i],
-                      bfdcRandom = bfdcRandom, y = yseq)
+                      bfdcRandom = bfdcRandom, bfdcRandomFull = bfdcRandomFull,
+                      y = yseq)
     return(out)
 }))
 bfDF2$trFormat <- paste0("{hat(theta)[italic('r')*", bfDF2$number, "] == ",
                          round(bfDF2$tr, 2), "}*',' ~ sigma[italic('r')*",
                          bfDF2$number, "] == ", round(bfDF2$sr, 2))
 
+## plot BFs as a function of prior parameters
 bfbks <- c(1/100, 1/30, 1/10, 1/3, 1, 3, 10, 30, 100)
 bflabs <- formatBF(BF = bfbks)
-ggplot(data = bfDF2, aes(x = y, y = bfdcRandom, color = trFormat)) +
+ploty <- ggplot(data = bfDF2, aes(x = y, y = bfdcRandom, color = trFormat)) +
     annotate(geom = "segment", x = 0.95, xend = 0.95, y = 1.1, yend = 11,
              arrow = arrow(type = "closed", length = unit(0.02, "npc")), alpha = 0.95,
              color = "darkgrey") +
@@ -322,15 +337,42 @@ ggplot(data = bfDF2, aes(x = y, y = bfdcRandom, color = trFormat)) +
     coord_cartesian(xlim = c(min(yseq), max(yseq)), ylim = c(1/45, 45)) +
     scale_color_manual(values = colblind, labels = scales::parse_format()) +
     labs(x = bquote("Prior parameter" ~ italic(y)),
-         y = bquote("BF"["dc"] * "("* hat(theta)[italic("ri")] ~ "|" ~ italic(y) * ")"),
+         y = bquote("BF"["dc"] * "{"* hat(theta)[italic("ri")] ~ "|" * italic("H")["d"] ~
+                        ":" ~ alpha ~
+                        "~ Be(1," * italic(y) * ")}"),
          color = "") +
     theme_bw() +
     theme(panel.grid.minor = element_blank(),
           legend.position = "top")
+plotx <- ggplot(data = bfDF2, aes(x = y, y = bfdcRandomFull, color = trFormat)) +
+    annotate(geom = "segment", x = 0.95, xend = 0.95, y = 1.1, yend = 11,
+             arrow = arrow(type = "closed", length = unit(0.02, "npc")), alpha = 0.95,
+             color = "darkgrey") +
+    annotate(geom = "segment", x = 0.95, xend = 0.95, y = 1/1.1, yend = 1/11,
+             arrow = arrow(type = "closed", length = unit(0.02, "npc")), alpha = 0.95,
+             color = "darkgrey") +
+    annotate(geom = "text", x = 0.88, y = 3.5, label = "incompatible", angle = 90,
+             alpha = 0.7, size = 2.5) +
+    annotate(geom = "text", x = 0.88, y = 1/3.5, label = "compatible", angle = 90,
+             alpha = 0.7, size = 2.5) +
+    geom_hline(yintercept = 1, lty = 2, alpha = 0.2) +
+    geom_line(linewidth = 0.7) +
+    scale_y_log10(breaks = bfbks, labels = bflabs) +
+    scale_x_log10(breaks = bfbks) +
+    coord_cartesian(xlim = c(min(yseq), max(yseq)), ylim = c(1/45, 45)) +
+    scale_color_manual(values = colblind, labels = scales::parse_format()) +
+    labs(x = bquote("Prior parameter" ~ italic(x)),
+         y = bquote("BF"["dc"] * "("* hat(theta)[italic("ri")] ~ "|" ~ italic(x) * ")"),
+         color = "") +
+    theme_bw() +
+    theme(panel.grid.minor = element_blank(),
+          legend.position = "top")
+ploty
+## ggpubr::ggarrange(ploty, plotx, common.legend = TRUE)
 
 
 ## ----"asymptotic-Bayes-factor"------------------------------------------------
-## Compute bound for the Bayes factor
+## Compute asymptotic bounds for the Bayes factors
 k <- sqrt(2)
 g <- k^2/so^2
 s <- g/(1 + g)
@@ -340,7 +382,7 @@ bfBound <- dnorm(x = trueESmin, mean = 0, sd = k)/
 bfBound2 <- beta(3/2, 2)/beta(1, 2)
 
 
-## ----"Bayes-factor-design-analysis", fig.height = 4.5-------------------------
+## ----"Fig3-Bayes-factor-design", fig.height = 4.5-----------------------------
 ## Function to compute probability of replication success
 powerFun <- function(sr, to, so, k, level, mi, vi) {
     s <- k^2 / (so^2 + k^2)
@@ -480,7 +522,7 @@ ggplot(data = plotDF, aes(x = c, y = p, color = type)) +
           strip.background.y = element_blank(), strip.placement = "outside")
 
 
-## ----"figure-I2-alpha", fig.height = 3----------------------------------------
+## ----"Fig4-I2-alpha", fig.height = 3------------------------------------------
 ## Compute alpha from I^2 and I
 I2seq <- seq(from = 0, to = 1, length.out = 1000)
 alphaseq <- (1 - I2seq)/(1 + I2seq)
@@ -515,7 +557,7 @@ ggplot(data = filter(plotDF, type != "italic('I')"),
 
 
 
-## ----"figure-corresponding-priors", fig.height = 5----------------------------
+## ----"Fig5-corresponding-priors", fig.height = 5------------------------------
 ## Function for computing prior density of tau^2 based on the corresponding
 ## Beta(a, b) prior on power parameter alpha
 ftau2 <- function(tau2, a, b, so) {
@@ -608,7 +650,7 @@ ggpubr::ggarrange(plottau, ploti2, plotalpha, ncol = 3, align = "h",
                   widths = c(1.25, 1.05, 1.1))
 
 
-## ----"consistent-prior", fig.height = 5---------------------------------------
+## ----"Fig6-consistent-prior", fig.height = 5----------------------------------
 ## prior for alpha that leads to consistent test
 falpha <- function(alpha, q, r, so) {
     r^q/gamma(x = q)*alpha^(q - 1)/(1 - alpha)^(q + 1)*(2/so^2)^q*

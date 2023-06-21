@@ -51,3 +51,8 @@ code/
 coverletter/
 misc/
 submission/
+paper/old/
+paper/cache/
+
+# LaTeX diff file
+paper/ppreplicationChanges.pdf

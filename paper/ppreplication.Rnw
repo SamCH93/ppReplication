@@ -105,7 +105,7 @@ library(xtable) # LaTeX tables
 library(dplyr) # easier data manipulation
 library(hypergeo) # confluent hypergeometric function
 library(ReplicationSuccess) # for data set
-library(gridExtra) # combining plots
+library(ggpubr) # combining plots
 @
 
 %% Abstract
@@ -181,11 +181,10 @@ completely discounted.
 Below we first show how power priors can be constructed from data of an original
 study under a meta-analytic framework (Section~\ref{sec:power-prior}). We then
 shown how the power prior can be used for parameter estimation
-(Section~\ref{sec:parameter-estimation}), Bayes factor hypothesis testing
-(Section~\ref{sec:hypothesis-testing}), and for the design of new replication
-studies (Section~\ref{sec:design}). Throughout, the methodology is illustrated
-by application to data from three replication studies which were part of a
-large-scale replication project \citep{Protzko2020}. In
+(Section~\ref{sec:parameter-estimation}) and Bayes factor hypothesis testing
+(Section~\ref{sec:hypothesis-testing}). Throughout, the methodology is
+illustrated by application to data from three replication studies which were
+part of a large-scale replication project \citep{Protzko2020}. In
 Section~\ref{sec:hierarch}, we explore the connection to the alternative
 hierarchical modeling approach for incorporating the original data
 \citep{Bayarri2002, Bayarri2002b, Pawel2020}, which has been previously used for
@@ -374,8 +373,8 @@ Section~\ref{sec:discussion} discusses possible extensions of the power prior
 approach for joint analyses in multisite designs.
 
 \begin{figure}[!htb]
-<< "computing-posterior-distribution", fig.height = 6, cache = TRUE >>=
-## Parameter grid to compute posterior density for
+<< "posterior-distribution", fig.height = 6, cache = TRUE >>=
+## Parameter grid to compute posterior density
 nalpha <- 200
 ntheta <- 200
 alphaseq <- seq(0, 1, length.out = nalpha)
@@ -489,7 +488,7 @@ alphaLimitDF <- data.frame(x = alphaseq,
                            density = dbeta(x = alphaseq, x + 0.5, y),
                            parameter = "'Power parameter' ~ alpha")
 @
-<< "figure-posterior-distribution", fig.height = 6 >>=
+<< "Fig1-posterior-distribution", fig.height = 6 >>=
 ## colorblind friendly scale
 ncat <- length(unique(margplotDF$trFormat))
 colblind <- palette.colors(n = ncat + 1, palette = "Okabe-Ito")[2:(ncat + 1)]
@@ -519,22 +518,8 @@ plotBot <- ggplot() +
           legend.text.align = 0, strip.text.x = element_text(size = 11))
 
 ## Combine all plots
-grid.arrange(plotTop, plotBot, ncol = 1)
+ggpubr::ggarrange(plotTop, plotBot, ncol = 1)
 @
-% \caption{Analysis of three replication studies of the ``Labels'' experiment from
-%   \citet{Protzko2020}. Shown are joint (top) and marginal (bottom) posterior
-%   distributions of effect size $\theta$ and power parameter $\alpha$ with 95\%
-%   highest posterior density credible intervals for the latter. A power prior for
-%   the effect size $\theta$ is constructed from the original effect estimate
-%   $\that_{o} = \Sexpr{round(to, 2)}$ (with standard error
-%   $\sigma_{o} = \Sexpr{round(so, 2)}$) and an initial flat prior
-%   $f(\theta) \propto 1$. The power parameter $\alpha$ is assigned a uniform
-%   $\Be(x = \Sexpr{round(x, 2)}, y = \Sexpr{round(y, 2)})$ prior distribution.
-%   The dashed lines depict the posterior density for the effect size $\theta$
-%   when the replication data are analyzed in isolation without incorporation of
-%   the original data. The dotted line represents the limiting posterior density
-%   of the power parameter $\alpha$ for perfectly agreeing original and
-%   replication studies.}
 \caption{Joint (top) and marginal (bottom) posterior distributions of effect
   size $\theta$ and power parameter $\alpha$ based on data from the ``Labels''
   experiment \citep{Protzko2020}. The dashed lines depict the posterior density
@@ -653,13 +638,6 @@ Bayes factor deviates from one, the larger the evidence. In the following we
 will examine the Bayes factors related to various hypotheses about $\theta$ and
 $\alpha$.
 
-% For example, for the effect size, we may want to test the hypotheses of the
-% effect being absent ($\h{0} \colon \theta = 0$) versus the effect being present
-% ($\h{1} \colon \theta \neq 0$). For the power parameter, we may want to contrast
-% the hypotheses of the data sets being compatible
-% ($\h{\text{c}} \colon \alpha = 1$) versus the data being different
-% ($\h{\text{d}} \colon \alpha < 1$). A principled Bayesian approach is to compute
-
 
 \begin{sloppypar}
 \subsubsection{Hypotheses about the effect size \texorpdfstring{$\boldsymbol{\theta}$}{}}
@@ -667,7 +645,7 @@ $\alpha$.
 Researchers may be interested in testing the null hypothesis that there is no
 effect ($\h{0} \colon \theta = 0$) against the alternative that there is an
 effect ($\h{1} \colon \theta \neq 0$). We note that while the point null
-hypotheses $\h{0}$ is often unrealistic, it is usually a good approximation to
+hypothesis $\h{0}$ is often unrealistic, it is usually a good approximation to
 more realistic interval null hypotheses that assign a distribution tightly
 concentrated around zero \citep{Berger1987b, Ly2022}. Under $\h{0}$ there are no
 free parameters, but under the alternative $\h{1}$ the specification of a prior
@@ -939,15 +917,15 @@ replication the Bayes factor shifts from anecdotal evidence to stronger evidence
 for compatibility.
 
 \begin{figure}[!htb]
-<< "bf-sensitivity", fig.height = 3.25 >>=
-## aseq <- seq(0, 1, 0.01)
-## plot(aseq, dbeta(aseq, 1, 100), type = "l")
+<< "Fig2-BF-sensitivity", fig.height = 3.25 >>=
+## Compute BFs for a grid of prior parameters to see how robust results are
 yseq <- xseq <- exp(seq(log(1.001), log(100), 0.1))
-## Compute BFs for effect sizes and power parameter
 bfDF2 <- do.call("rbind", lapply(X = seq(1, length(tr)), FUN = function(i) {
+    ## simple vs. composite BF
     bfdcRandom <- sapply(X = yseq, FUN = function(y) {
         bfPPalpha(tr = tr[i], sr = sr[i], to = to, so = so, y = y)
     })
+    ## composite vs. composite BF
     bfdcRandomFull <- sapply(X = xseq, FUN = function(x) {
         fd <- margLik(tr = tr[i], sr = sr[i], to = to, so = so, x = 1, y = 2)
         fc <- margLik(tr = tr[i], sr = sr[i], to = to, so = so, x = x, y = 1)
@@ -962,6 +940,7 @@ bfDF2$trFormat <- paste0("{hat(theta)[italic('r')*", bfDF2$number, "] == ",
                          round(bfDF2$tr, 2), "}*',' ~ sigma[italic('r')*",
                          bfDF2$number, "] == ", round(bfDF2$sr, 2))
 
+## plot BFs as a function of prior parameters
 bfbks <- c(1/100, 1/30, 1/10, 1/3, 1, 3, 10, 30, 100)
 bflabs <- formatBF(BF = bfbks)
 ploty <- ggplot(data = bfDF2, aes(x = y, y = bfdcRandom, color = trFormat)) +
@@ -1035,7 +1014,7 @@ but also strong evidence of incompatibility with the original study.
 \subsubsection{Bayes factor asymptotics}
 
 << "asymptotic-Bayes-factor" >>=
-## Compute bound for the Bayes factor
+## Compute asymptotic bounds for the Bayes factors
 k <- sqrt(2)
 g <- k^2/so^2
 s <- g/(1 + g)
@@ -1221,7 +1200,7 @@ aforementioned approximation \mbox{$n_{r} \approx 4/\sigma^{2}_{r}$}.
 
 
 \begin{figure}[!htb]
-<< "Bayes-factor-design-analysis", fig.height = 4.5 >>=
+<< "Fig3-Bayes-factor-design", fig.height = 4.5 >>=
 ## Function to compute probability of replication success
 powerFun <- function(sr, to, so, k, level, mi, vi) {
     s <- k^2 / (so^2 + k^2)
@@ -1498,7 +1477,7 @@ the corresponding $\tau^2$ and $I^2$ values which lead to matching posteriors.
 % models is $\alpha \approx 1 - I^2$.
 
 \begin{figure}[!htb]
-<< "figure-I2-alpha", fig.height = 3 >>=
+<< "Fig4-I2-alpha", fig.height = 3 >>=
 ## Compute alpha from I^2 and I
 I2seq <- seq(from = 0, to = 1, length.out = 1000)
 alphaseq <- (1 - I2seq)/(1 + I2seq)
@@ -1588,7 +1567,7 @@ estimates $\that_o$ with different variances $\sigma^2_o$ since $I^2$ is
 entangled with the variance of the original effect estimate.
 
 \begin{figure}[!htb]
-<< "figure-corresponding-priors", fig.height = 5 >>=
+<< "Fig5-corresponding-priors", fig.height = 5 >>=
 ## Function for computing prior density of tau^2 based on the corresponding
 ## Beta(a, b) prior on power parameter alpha
 ftau2 <- function(tau2, a, b, so) {
@@ -1865,7 +1844,7 @@ original standard error $\sigma_o$, thereby leading to a consistent test for
 study compatibility and resolving the inconsistency property of the beta prior.
 
 \begin{figure}[!htb]
-<< "consistent-prior", fig.height = 5 >>=
+<< "Fig6-consistent-prior", fig.height = 5 >>=
 ## prior for alpha that leads to consistent test
 falpha <- function(alpha, q, r, so) {
     r^q/gamma(x = q)*alpha^(q - 1)/(1 - alpha)^(q + 1)*(2/so^2)^q*
@@ -1925,9 +1904,11 @@ uniform prior $\alpha \sim \mathrm{Be}(x = 1, y = 1)$, we can at best obtain a
 $\alpha \,\vert\, \hat{\theta}_{r} \sim \mathrm{Be}(x + 1/2 = 3/2, y = 1)$
 posterior \citep{Pawel2022c}. This means that for a ``compatibility threshold''
 of, say, 0.8, we can never have a posterior probability higher than
-$\mathrm{Pr}(\alpha > 0.8 \,\vert\, \hat{\theta}_{r}) = \Sexpr{round(pbeta(q = 0.8, 1.5, 1, lower.tail = FALSE), 2)}$,
+$\mathrm{Pr}(\alpha > 0.8 \,\vert\, \hat{\theta}_{r}) =
+\Sexpr{round(pbeta(q = 0.8, 1.5, 1, lower.tail = FALSE), 2)}$,
 and for a threshold of 0.9 it is even lower
-$\mathrm{Pr}(\alpha > 0.9 \,\vert\, \hat{\theta}_{r}) = \Sexpr{round(pbeta(q = 0.9, 1.5, 1, lower.tail = FALSE), 2)}$.
+$\mathrm{Pr}(\alpha > 0.9 \,\vert\, \hat{\theta}_{r}) =
+\Sexpr{round(pbeta(q = 0.9, 1.5, 1, lower.tail = FALSE), 2)}$.
 The fact that the Bayes factor for testing
 $\h{\text{d}}\colon \alpha \sim \Be(1, y)$ against
 $\h{\text{c}}\colon \alpha = 1$ is inconsistent, i.e., bounded from below by
