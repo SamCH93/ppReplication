@@ -2142,8 +2142,9 @@ language version \Sexpr{paste(version$major, version$minor, sep = ".")}
 \url{https://github.com/SamCH93/ppReplication}. A snapshot of the GitHub
 repository at the time of writing this article is archived at
 \url{https://doi.org/10.5281/zenodo.6940238}. We also provide an R package for
-estimation and testing under the power prior framework with documentation and
-example code at \url{https://github.com/SamCH93/ppRep}.
+estimation and testing under the power prior framework
+(\url{https://CRAN.R-project.org/package=ppRep}). The package can be installed
+by running \texttt{install.packages("ppRep")} from an R console.
 
 \section*{Acknowledgments}
 We thank \citet{Protzko2020} for publicly sharing their data. We thank
