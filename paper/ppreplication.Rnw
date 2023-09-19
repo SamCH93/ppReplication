@@ -21,20 +21,20 @@
 \geometry{
   a4paper,
   total={170mm,257mm},
-  left=25mm,
+  left=20mm,
   right=20mm,
   top=30mm,
-  bottom=20mm,
+  bottom=25mm,
 }
 
 %% title, authors, affiliations, mail
-\newcommand\longtitle{Power Priors for Replication Studies}
-\newcommand\shorttitle{Power Priors for Replication Studies} % if longtitle too long, change here
+\newcommand\longtitle{Power priors for replication studies}
+\newcommand\shorttitle{Power priors for replication studies} % if longtitle too long, change here
 \newcommand\subtitle{}
 \newcommand\longauthors{Samuel Pawel\textsuperscript{$\star$}, Frederik Aust\textsuperscript{$\dagger$}, Leonhard Held\textsuperscript{$\star$}, Eric-Jan Wagenmakers\textsuperscript{$\dagger$}}
 \newcommand\shortauthors{S. Pawel, F. Aust, L. Held, E.-J. Wagenmakers} % if longauthors too long, change here
 \newcommand\affiliation{
-  $\star$ Department of Biostatistics, University of Zurich \\
+  $\star$ Epidemiology, Biostatistics and Prevention Institute (EBPI), \\ Center for Reproducible Science (CRS), University of Zurich \\
   $\dagger$ Department of Psychological Methods, University of Amsterdam
 }
 \newcommand\mail{samuel.pawel@uzh.ch}
@@ -48,7 +48,7 @@
   \affiliation \\
   E-mail: \href{mailto:\mail}{\mail}
 }
-\date{\today} %don't forget to hard-code date when submitting to arXiv!
+\date{September 19, 2023} %don't forget to hard-code date when submitting to arXiv!
 
 %% hyperref options
 \usepackage{hyperref}
@@ -81,7 +81,7 @@
 %% Disclaimer that a preprint
 \vspace{-3em}
 \begin{center}
-  {\color{red}This is a preprint which has not yet been peer reviewed.}
+  ~% {\color{red}This is a preprint which has not yet been peer reviewed.}
 \end{center}
 
 << "main-setup", include = FALSE >>=
@@ -589,10 +589,10 @@ among the three replications, despite the standard error being the largest
 ($\sigma_{r2} = \Sexpr{round(sr[3], 2)}$). Consequently, the 95\% credible
 interval of $\theta$ is substantially narrower compared to the credible interval
 from the analysis of the replication data in isolation (dashed green). In
-contrast, the (blue) marginal posterior of the most conflicting estimate (\ie{}
-$\that_{r3} = \Sexpr{round(tr[2], 2)}$) borrows less information and
+contrast, the (blue) marginal posterior of the most conflicting estimate
+($\that_{r3} = \Sexpr{round(tr[2], 2)}$) borrows less information and
 consequently yields the least peaked posterior, despite the standard error being
-the smallest (\ie{} $\sigma_{r3} = \Sexpr{round(sr[2], 2)}$). In this case, the
+the smallest ($\sigma_{r3} = \Sexpr{round(sr[2], 2)}$). In this case, the
 conflict with the original study even inflates the variance of posterior
 compared to the isolated replication posterior given by dashed blue line. This
 is, for example, apparent through its 95\% credible interval
@@ -908,8 +908,8 @@ illustrate that in case of no conflict (study 2) or not too much conflict (study
 (in)compatibility, but in case of substantial conflict (study 3) it is more
 sensitive.
 
-The previous analysis is based on a prior with $y = 2$ corresponding to a
-linearly decreasing prior for $\alpha$, Figure~\ref{fig:sensitivityPrior} shows
+The previous analysis is based on a beta prior with $y = 2$ corresponding to a
+linearly decreasing density in $\alpha$, Figure~\ref{fig:sensitivityPrior} shows
 the Bayes factor for other values of $y$. We see that in the realistic range of
 $y = 1$ (uniform prior) to $y = 100$ (almost all mass at $\alpha = 0$) the
 results for the first and third replication hardly change, while for the second
@@ -1052,7 +1052,7 @@ and
 \end{align*}
 with $\delta(\cdot)$ the Dirac delta function. Both Bayes factors are hence
 consistent \citep{Bayarri2012} in the sense that they indicate overwhelming
-evidence for the correct hypothesis (\ie{} the Bayes factors go to infinity/zero
+evidence for the correct hypothesis (i.e., the Bayes factors go to infinity/zero
 if the true effect size $\theta_r$ is zero/non-zero). In contrast, the Bayes
 factors for testing the power parameter $\alpha$ from~\eqref{eq:bfalpha}
 and~\eqref{eq:bfdcrandom} converge to positive constants
@@ -1101,7 +1101,7 @@ $\theta_r$ is different/equivalent from the true effect size of the original
 study $\theta_o$. In contrast, the Bayes factor with
 $\h{\text{d}} \colon \alpha \sim \Be(1, y)$ from~\eqref{eq:bfdcrandom} is still
 inconsistent since it only shows the correct asymptotic behavior when the true
-effect sizes are unequal (\ie{} the Bayes factor goes to infinity) but not when
+effect sizes are unequal (i.e., the Bayes factor goes to infinity) but not when
 the effect sizes are equivalent, in which case it is still bounded by
 $\mbox{B}(3/2, y)/\mbox{B}(1,y)$.
 
@@ -1117,8 +1117,8 @@ conclusive analysis in each case \citep{Pawel2022d}.
 In the power prior framework, samples size calculations may be based on either
 hypothesis testing or estimation of the effect size $\theta$ or the power
 parameter $\alpha$. Estimation based approaches have been developed by
-\citet{Shen2023}. Here, we focus on samples size calculations based Bayes factor
-hypothesis testing as the methodology is still lacking.
+\citet{Shen2023}. Here, we focus on samples size calculations based on Bayes
+factor hypothesis testing as the methodology is still lacking.
 
 \begin{sloppypar}
   In the case of testing the effect size $\theta$, \citet{Pawel2020b} studied
@@ -1369,21 +1369,21 @@ for finding strong evidence for $\h{\text{c}}$ rapidly increases under
 $\h{\text{c}}$ and seems to level off at an asymptote. Under $\h{\text{d}}$ the
 probability stays below 5\% across the whole range.
 
-The plots also display the required relative sample size to obtain strong
-evidence with probability of  $\Sexpr{round(100*pow, 2)}\%$ under the correct
-hypothesis. We see that original studies with smaller standard errors require
-smaller relative sample sizes in the replication to achieve the same probability
-of replication success. Under $\h{\text{c}}$ the required relative sample sizes
-are larger than under $\h{\text{d}}$. However, while the probability of
-misleading evidence under $\h{\text{c}}$ seems to be well controlled under the
-determined sample size, under $\h{\text{d}}$ it stays roughly 5\% for all three
-studies, and even for very large replication sample sizes. Choosing the sample
-size based on finding strong evidence for $\h{\text{c}}$ assuming $\h{\text{c}}$
-is true thus guarantees appropriate error probabilities for finding strong
-evidence for $\h{\text{d}}$ in all three studies. At the same time, it seems
-that the probability for finding misleading evidence for $\h{\text{c}}$ cannot
-be reduced below around 5\% which might undesirably high for certain
-applications.
+The arrows in the plots display the required relative sample size to obtain
+strong evidence with probability of $\Sexpr{round(100*pow, 2)}\%$ under the
+correct hypothesis. We see that original studies with smaller standard errors
+require smaller relative sample sizes in the replication to achieve the same
+probability of replication success. Under $\h{\text{c}}$ the required relative
+sample sizes are larger than under $\h{\text{d}}$. However, while the
+probability of misleading evidence under $\h{\text{c}}$ seems to be well
+controlled under the determined sample size, under $\h{\text{d}}$ it stays
+roughly 5\% for all three studies, and even for very large replication sample
+sizes. Choosing the sample size based on finding strong evidence for
+$\h{\text{c}}$ assuming $\h{\text{c}}$ is true thus also guarantees appropriate
+error probabilities for finding strong evidence for $\h{\text{d}}$ in all three
+studies. At the same time, it seems that the probability for finding misleading
+evidence for $\h{\text{c}}$ cannot be reduced below around 5\% which might be
+undesirably high for certain applications.
 
 
 \section{Connection to hierarchical modeling of replication studies}
@@ -1961,7 +1961,7 @@ historical ``original'' studies but only one current ``replication'' study is
 available \citep{Gravestock2019}.
 
 Another commonly used Bayesian approach for incorporating historical data are
-\emph{robust mixture priors}, \ie{} priors which are mixtures of the posterior
+\emph{robust mixture priors}, i.e., priors which are mixtures of the posterior
 based on the historical data and an uninformative prior distribution
 \citep{Schmidli2014}. We conjecture that inferences based on robust mixture
 priors can be reverse-engineered within the framework of power priors through
@@ -2135,14 +2135,14 @@ of][]{PhamGia1989}.
 \end{appendices}
 
 \section*{Software and data}
-The CC-By Attribution 4.0 International licensed data were downloaded from
-\url{https://osf.io/42ef9/}. All analyses were conducted in the R programming
-language version \Sexpr{paste(version$major, version$minor, sep = ".")}
-\citep{R}. The code and data to reproduce this manuscript is available at
-\url{https://github.com/SamCH93/ppReplication}. A snapshot of the GitHub
-repository at the time of writing this article is archived at
-\url{https://doi.org/10.5281/zenodo.6940238}. We also provide an R package for
-estimation and testing under the power prior framework
+The CC-By Attribution 4.0 International licensed data were downloaded
+from \url{https://osf.io/42ef9/}. All analyses were conducted in the R
+programming language version \Sexpr{paste(version$major, version$minor, sep =
+  ".")} \citep{R}. The code and data to reproduce this manuscript is available
+at \url{https://github.com/SamCH93/ppReplication}. A snapshot of the GitHub
+repository at the time of writing this article is archived
+at \url{https://doi.org/10.5281/zenodo.6940237}. We also provide an R package
+for estimation and testing under the power prior framework
 (\url{https://CRAN.R-project.org/package=ppRep}). The package can be installed
 by running \texttt{install.packages("ppRep")} from an R console.
 
@@ -2153,7 +2153,6 @@ associate editor and the two anonymous reviewers for many excellent comments and
 suggestions. This work was supported in part by an NWO Vici grant
 (016.Vici.170.083) to EJW, an Advanced ERC grant (743086 UNIFY) to EJW, and a
 Swiss National Science Foundation mobility grant (189295) to LH and SP.
-% Our acknowledgement of these individuals does not imply their endorsement of this article.
 
 
 \section*{Conflict of interest}

@@ -1,10 +1,10 @@
 # Power Priors for Replication Studies
 
-This repository contains code and data related to the preprint 
+This repository contains code and data related to the paper 
 
-Pawel, S., Aust, F., Held, L., and Wagenmakers, E.-J. (2022). Power Priors for
-Replication Studies.
-doi:[10.48550/arXiv.2206.xxxxx](https://doi.org/10.48550/arXiv.2206.xxxxx)
+Pawel, S., Aust, F., Held, L., and Wagenmakers, E.-J. (2023). Power Priors for
+Replication Studies. TEST.
+doi:[10.1007/s11749-023-00888-5](https://doi.org/10.1007/s11749-023-00888-5)
 
 ## Reproducing the results
 
